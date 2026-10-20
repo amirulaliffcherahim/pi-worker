@@ -24,6 +24,12 @@ function exactFields(value, path, allowed, hint) {
         throw new Error(`${path} contains unsupported fields: ${unsupported.join(", ")}. ${hint}`);
     return value;
 }
+/** A child may carry a model the launch gate already resolved. writes is consumed by the gate and never reaches a child. */
+function optionalModel(record, path) {
+    if (record.model === undefined)
+        return undefined;
+    return nonEmptyString(record.model, `${path}.model`);
+}
 /** Single pass: text inserted for a placeholder is never scanned again. Unrecognized brace text stays literal. */
 function compileTemplate(template, scope) {
     const parts = [];
@@ -64,7 +70,7 @@ function prelude(originalTask) {
     return originalTask === undefined ? [SETTLE_HELPER] : [SETTLE_HELPER, `const originalTask = ${JSON.stringify(originalTask)};`];
 }
 function runsAllCall(children) {
-    return `await runs.all([${children.map((child) => `{ key: ${JSON.stringify(child.key)}, agent: ${JSON.stringify(child.agent)}, task: ${child.taskExpression} }`).join(", ")}])`;
+    return `await runs.all([${children.map((child) => `{ key: ${JSON.stringify(child.key)}, agent: ${JSON.stringify(child.agent)}, ${child.model ? `model: ${JSON.stringify(child.model)}, ` : ""}task: ${child.taskExpression} }`).join(", ")}])`;
 }
 const SETTLE_HELPER = [
     "function settle(results, agents) {",
@@ -84,7 +90,7 @@ function buildTasksScript(steps, originalTask) {
         throw new Error("tasks must be a non-empty array of { agent, task } items.");
     const children = steps.map((item, index) => {
         const path = `tasks[${index}]`;
-        const record = exactFields(item, path, ["agent", "task"], "Each tasks item accepts only agent and task.");
+        const record = exactFields(item, path, ["agent", "task", "model", "writes"], "Each tasks item accepts only agent, task, model and writes.");
         const agent = nonEmptyString(record.agent, `${path}.agent`);
         const task = nonEmptyString(record.task, `${path}.task`);
         const taskExpression = compileTemplate(task, {
@@ -93,7 +99,7 @@ function buildTasksScript(steps, originalTask) {
             previous: { unavailable: "tasks items may only use {task}." },
             outputsUnavailable: "tasks items may only use {task}.",
         });
-        return { key: `task-${index + 1}`, agent, taskExpression };
+        return { key: `task-${index + 1}`, agent, model: optionalModel(record, path), taskExpression };
     });
     return [
         ...prelude(originalTask),
@@ -124,14 +130,14 @@ function buildChainScript(steps, originalTask) {
                 throw new Error(`${path}.parallel must be a non-empty array of { agent, task } items.`);
             stepChildren = items.map((item, itemIndex) => {
                 const itemPath = `${path}.parallel[${itemIndex}]`;
-                const itemRecord = exactFields(item, itemPath, ["agent", "task"], "Each parallel item accepts only agent and task.");
+                const itemRecord = exactFields(item, itemPath, ["agent", "task", "model", "writes"], "Each parallel item accepts only agent, task, model and writes.");
                 const agent = nonEmptyString(itemRecord.agent, `${itemPath}.agent`);
                 const task = nonEmptyString(itemRecord.task, `${itemPath}.task`);
-                return { key: `step-${number}-${itemIndex + 1}`, agent, taskExpression: compileTemplate(task, { path: `${itemPath}.task`, hasOriginalTask, previous, outputs }) };
+                return { key: `step-${number}-${itemIndex + 1}`, agent, model: optionalModel(itemRecord, itemPath), taskExpression: compileTemplate(task, { path: `${itemPath}.task`, hasOriginalTask, previous, outputs }) };
             });
         }
         else {
-            const record = exactFields(step, path, ["agent", "task", "as"], "A sequential step accepts only agent, task and as; a parallel step accepts only parallel.");
+            const record = exactFields(step, path, ["agent", "task", "as", "model", "writes"], "A sequential step accepts only agent, task, as, model and writes; a parallel step accepts only parallel.");
             const agent = nonEmptyString(record.agent, `${path}.agent`);
             let task;
             if (record.task === undefined) {
@@ -148,7 +154,7 @@ function buildChainScript(steps, originalTask) {
                     throw new Error(`${path}.as '${record.as}' is already used by an earlier step.`);
                 outputName = record.as;
             }
-            stepChildren = [{ key: `step-${number}`, agent, taskExpression: compileTemplate(task, { path: `${path}.task`, hasOriginalTask, previous, outputs }) }];
+            stepChildren = [{ key: `step-${number}`, agent, model: optionalModel(record, path), taskExpression: compileTemplate(task, { path: `${path}.task`, hasOriginalTask, previous, outputs }) }];
         }
         lines.push(`const run${number} = ${runsAllCall(stepChildren)};`, `const step${number} = settle(run${number}, ${JSON.stringify(stepChildren.map((child) => child.agent))});`, `children.push(...step${number});`, `if (!step${number}.every(function (child) { return child.ok; })) throw failure(${JSON.stringify(`chain stopped at step ${number}`)}, step${number});`);
         if (index < steps.length - 1)
