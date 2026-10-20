@@ -59,7 +59,7 @@ test("slicing rules only offer categories whose worker is launchable", () => {
 	assert.doesNotMatch(text, /Decide -> oracle/);
 	assert.match(text, /at most 4/);
 	assert.match(text, /must carry writes/);
-	assert.match(text, /ONE delegate_task call as tasks/);
+	assert.match(text, /ONE delegate_task call per turn/);
 	assert.match(text, /Review at most 2 rounds/);
 	assert.match(text, /more than 5 files, or anything touching migrations, auth, deletion, config, CI or a public API/);
 	assert.match(text, /Small jobs is for docs, config and renames/);

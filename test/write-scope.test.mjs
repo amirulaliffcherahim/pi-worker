@@ -130,3 +130,14 @@ test("the builtin roster has exactly two writers: worker and delegate", async ()
 	const writers = roster.filter((a) => (a.tools ?? []).some((t) => t === "edit" || t === "write")).map((a) => a.name);
 	assert.deepEqual(writers.sort(), ["delegate", "worker"]);
 });
+
+test("writes at the top level of a multi-task call is refused with the exact fix", () => {
+	const params = { model: SONNET, writes: ["a.js", "b.js"], tasks: [w("worker", "x"), w("worker", "y")] };
+	const error = gateLaunch(params, settings, 0, env).error;
+	assert.match(error, /tasks\[0\]' \(worker\) has no writes of its own/);
+	assert.match(error, /Put writes inside each task/);
+});
+
+test("top-level writes on a single launch still count for that launch", () => {
+	assert.equal(gateLaunch({ model: SONNET, agent: "worker", task: "t", writes: ["a.js"] }, settings, 0, env).error, undefined);
+});

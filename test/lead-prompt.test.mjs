@@ -128,3 +128,9 @@ test("lead prompt tells the lead not to try bash and not to read skill files", (
 	assert.match(prompt, /Keep todo use light/);
 	assert.match(prompt, /leave model out and each worker gets its category default/);
 });
+
+test("lead prompt says one delegate_task call per turn and writes go inside each task", () => {
+	const text = renderLeadPrompt(resolveBriefTemplate({}));
+	assert.match(text, /ONE delegate_task call per turn/);
+	assert.match(text, /inside its own task entry/);
+});

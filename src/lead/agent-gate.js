@@ -138,6 +138,8 @@ export function checkWritesDeclared(params, writers) {
 		if (!writers.get(unit.agent))
 			continue;
 		const writes = cleanWrites(unit.writes);
+		if (writes.length === 0 && unit !== params && cleanWrites(params.writes).length > 0)
+			return `pi-worker: '${label}' (${unit.agent}) has no writes of its own. writes at the top level of the call covers no task. Put writes inside each task, for example tasks:[{agent,task,writes:["a.js"]},{agent,task,writes:["b.js"]}].`;
 		if (writes.length === 0)
 			return `pi-worker: '${label}' (${unit.agent}) edits files but declares no writes. List the files or globs it may change, for example writes:["src/a.js","tests/a.test.js"].`;
 		const loose = writes.find(isUnbounded);
