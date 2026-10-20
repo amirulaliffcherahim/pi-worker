@@ -1130,10 +1130,10 @@ function applySubagentDefaultThinking(agents, defaultThinking) {
         return next;
     });
 }
-function resolveSubagentMaxThinking(userSettings, projectSettings, projectSettingsPath) {
-    if (projectSettingsPath && projectSettings.maxThinking !== undefined)
-        return projectSettings.maxThinking;
-    return userSettings.maxThinking;
+// pi-worker owns the thinking ceiling (piWorker.thinkingCeiling, enforced in src/lead/delegate-gate.js) because it
+// lifts to high after repeated failures. A second static ceiling here would reject that escalation, so it is ignored.
+function resolveSubagentMaxThinking() {
+    return undefined;
 }
 function applySubagentMaxThinking(agents, maxThinking) {
     if (maxThinking === undefined)

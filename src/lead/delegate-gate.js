@@ -12,6 +12,8 @@ export const DEFAULT_BRIEF_MAX_TOKENS = 3000;
 export const DEFAULT_THINKING_CEILING = "medium";
 export const ESCALATED_THINKING = "high";
 export const ESCALATE_AFTER_FAILURES = 2;
+// xhigh and max are never reachable through delegation. Only the user applies them by hand, outside pi-worker.
+export const HARD_MAX_THINKING = "high";
 export const DEFAULT_ALLOWED_TOOLS = Object.freeze(["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor"]);
 const ROLE_ACTIONS = new Set(["create", "update"]);
 
@@ -25,7 +27,8 @@ export function resolveDelegateSettings(settings) {
 	const brief = root?.brief;
 	const maxTokens = Number.isInteger(brief?.maxTokens) && brief.maxTokens > 0 ? brief.maxTokens : DEFAULT_BRIEF_MAX_TOKENS;
 	const ceilingRaw = root?.thinkingCeiling;
-	const ceiling = THINKING_LEVELS.includes(ceilingRaw) ? ceilingRaw : DEFAULT_THINKING_CEILING;
+	const requested = THINKING_LEVELS.includes(ceilingRaw) ? ceilingRaw : DEFAULT_THINKING_CEILING;
+	const ceiling = compareThinkingLevels(requested, HARD_MAX_THINKING) > 0 ? HARD_MAX_THINKING : requested;
 	const enabledModels = Array.isArray(settings?.enabledModels) ? settings.enabledModels.filter((id) => typeof id === "string") : [];
 	const allowedTools = Array.isArray(root?.allowedTools) ? root.allowedTools.map(String) : DEFAULT_ALLOWED_TOOLS;
 	return { maxTokens, ceiling, enabledModels, allowedTools };

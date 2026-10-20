@@ -45,3 +45,44 @@ test("tool_call handler vetoes through pi.getSettings, re-read on each call", ()
 	settings = { piWorker: { lead: { readOnly: false } } };
 	assert.equal(handler({ toolName: "write" }), undefined);
 });
+
+test("the default denylist also covers apply_patch, multi_edit and notebook_edit", () => {
+	const gate = resolveLeadGate({});
+	for (const tool of ["apply_patch", "multi_edit", "notebook_edit"]) assert.equal(leadToolVerdict(gate, tool).block, true, tool);
+});
+
+test("non-strict mode lets unknown tools through", () => {
+	assert.equal(leadToolVerdict(resolveLeadGate({}), "mcp__db__insert").block, false);
+});
+
+test("strict mode refuses an unknown tool, allows listed and readOnlyHint tools", () => {
+	const gate = resolveLeadGate({ piWorker: { lead: { strict: true } } });
+	assert.equal(leadToolVerdict(gate, "mcp__db__insert").block, true);
+	assert.match(leadToolVerdict(gate, "mcp__db__insert").reason, /allowlist/);
+	assert.equal(leadToolVerdict(gate, "mcp__db__query", { readOnlyHint: true }).block, false);
+	assert.equal(leadToolVerdict(gate, "mcp__db__insert", { readOnlyHint: false }).block, true);
+	for (const tool of ["read", "grep", "delegate_task", "worker_diff", "todo", "memory_search"]) {
+		assert.equal(leadToolVerdict(gate, tool).block, false, tool);
+	}
+});
+
+test("piWorker.lead.allowedTools extends the strict allowlist, but the denylist still wins", () => {
+	const gate = resolveLeadGate({ piWorker: { lead: { strict: true, allowedTools: ["my_reader", "bash"] } } });
+	assert.equal(leadToolVerdict(gate, "my_reader").block, false);
+	assert.equal(leadToolVerdict(gate, "bash").block, true);
+});
+
+test("a readOnlyHint cannot unblock a denylisted tool", () => {
+	assert.equal(leadToolVerdict(resolveLeadGate({}), "edit", { readOnlyHint: true }).block, true);
+});
+
+test("handler reads tool annotations from pi.getAllTools and survives it throwing", () => {
+	let handler;
+	const settings = { piWorker: { lead: { strict: true } } };
+	const base = { on: (name, fn) => { if (name === "tool_call") handler = fn; }, getSettings: () => settings };
+	registerLeadGate({ ...base, getAllTools: () => [{ name: "q", annotations: { readOnlyHint: true } }] });
+	assert.equal(handler({ toolName: "q" }), undefined);
+	assert.equal(handler({ toolName: "other" }).block, true);
+	registerLeadGate({ ...base, getAllTools: () => { throw new Error("not ready"); } });
+	assert.equal(handler({ toolName: "other" }).block, true);
+});

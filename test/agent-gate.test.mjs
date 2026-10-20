@@ -149,3 +149,34 @@ test("before 2 failures the high agent is pinned to medium; on the third launch 
 	await assert.rejects(fail, /crash/);
 	assert.deepEqual(seen, [SONNET + ":medium", SONNET + ":medium", SONNET]);
 });
+
+test("xhigh and max are off limits: a settings ceiling above high is cut to high", async () => {
+	const { resolveDelegateSettings } = await import("../src/lead/delegate-gate.js");
+	for (const level of ["xhigh", "max"]) {
+		assert.equal(resolveDelegateSettings({ piWorker: { thinkingCeiling: level } }).ceiling, "high", level);
+	}
+});
+
+test("xhigh and max never launch, even after many failures or with a settings ceiling of max", () => {
+	const loose = { ...settings, piWorker: { thinkingCeiling: "max" } };
+	for (const failures of [0, 2, 9]) {
+		for (const level of ["xhigh", "max"]) {
+			const gated = gateLaunch(launch("worker", { model: SONNET + ":" + level }), loose, failures, env("low"));
+			assert.equal(gated.params.model, SONNET + ":high", level + "/" + failures);
+		}
+	}
+});
+
+test("an agent file or session default of xhigh/max is pinned to high at most", () => {
+	const loose = { ...settings, piWorker: { thinkingCeiling: "max" } };
+	const maxAgent = { agents: [...agents, { name: "mx", tools: ["read"], thinking: "max" }], resolveAgent, sessionThinking: "xhigh" };
+	assert.equal(gateLaunch(launch("mx"), loose, 0, maxAgent).params.model, SONNET + ":high");
+	assert.equal(gateLaunch(launch("bare"), loose, 5, maxAgent).params.model, SONNET + ":high");
+});
+
+test("a role written with xhigh or max thinking is refused", async () => {
+	const { checkRole } = await import("../src/lead/delegate-gate.js");
+	for (const thinking of ["xhigh", "max"]) {
+		assert.match(checkRole({ action: "create", config: { thinking } }, { piWorker: { thinkingCeiling: "max" } }), /above the high ceiling/);
+	}
+});
