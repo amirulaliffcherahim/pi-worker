@@ -59,6 +59,8 @@ import { resolveWaitToolConfig } from "../runs/background/subagent-wait.js";
 import { registerWaitTool } from "../runs/background/wait-tool.js";
 import { registerSubagentToolActivation } from "./tool-activation.js";
 import { warnIfUpstreamLoaded } from "./collision-guard.js";
+import { registerLeadGate } from "../lead/lead-gate.js";
+import { registerDiffTool } from "../lead/diff-tool.js";
 import { recordedPromptSection, registerPinnedTool, setDeclarationPinning } from "./declaration-pinning.js";
 import { buildActiveRunsSection } from "./active-runs-prompt.js";
 import { createWaitSubscriptionManager } from "../runs/background/wait-subscriptions.js";
@@ -220,6 +222,8 @@ export default function registerSubagentExtension(pi) {
     if (process.env[SUBAGENT_CHILD_ENV] === "1") {
         return;
     }
+    registerLeadGate(pi);
+    registerDiffTool(pi);
     const runtimeRegistry = getRuntimeRegistry();
     setMainThinkingLevelSource(() => readMainThinkingLevel(() => pi.getThinkingLevel()));
     DIRS.results = ensureAccessibleDir(DIRS.results);
