@@ -21,8 +21,8 @@ test("settings override brief size and ceiling; junk falls back", () => {
 
 test("brief at the limit passes, one token over is refused with a trim hint", () => {
 	const atLimit = "x".repeat(3000 * 4);
-	assert.equal(gateLaunch({ agent: "worker", task: atLimit }, settings, 0).error, undefined);
-	const over = gateLaunch({ agent: "worker", task: atLimit + "xxxx" }, settings, 0);
+	assert.equal(gateLaunch({ agent: "worker", task: atLimit, model: SONNET }, settings, 0).error, undefined);
+	const over = gateLaunch({ agent: "worker", task: atLimit + "xxxx", model: SONNET }, settings, 0);
 	assert.match(over.error, /over the 3000 limit/);
 	assert.match(over.error, /Do not paste whole files/);
 });

@@ -94,9 +94,9 @@ test("rules do not count against the brief cap", async () => {
 	const guarded = createDelegateWrapper(() => ({ ...models, piWorker: { brief: { maxTokens: 50 } } }));
 	const atCap = "x".repeat(50 * 4);
 	let seen;
-	await guarded({ agent: "w", task: atCap }, async (launch) => { seen = launch; return { content: [], details: { results: [] } }; });
+	await guarded({ agent: "w", task: atCap, model: "claude/claude-sonnet-5-5" }, async (launch) => { seen = launch; return { content: [], details: { results: [] } }; });
 	assert.ok(estimateTokens(seen.task) > 50);
-	await assert.rejects(() => guarded({ agent: "w", task: atCap + "xxxx" }, async () => ({})), /over the 50 limit/);
+	await assert.rejects(() => guarded({ agent: "w", task: atCap + "xxxx", model: "claude/claude-sonnet-5-5" }, async () => ({})), /over the 50 limit/);
 });
 
 test("report cap defaults to 8 KB / 200 lines, is configurable, and respects an explicit maxOutput", () => {
@@ -109,7 +109,7 @@ test("report cap defaults to 8 KB / 200 lines, is configurable, and respects an 
 test("runner receives the report cap and no lead-only fields", async () => {
 	const guarded = createDelegateWrapper(() => models);
 	let seen;
-	await guarded({ agent: "w", task: "t", taskId: "T", retry: false }, async (launch) => { seen = launch; return { content: [], details: { results: [] } }; });
+	await guarded({ agent: "w", task: "t", taskId: "T", retry: false, model: "claude/claude-sonnet-5-5" }, async (launch) => { seen = launch; return { content: [], details: { results: [] } }; });
 	assert.deepEqual(seen.maxOutput, DEFAULT_REPORT_MAX);
 	assert.ok(!("taskId" in seen) && !("retry" in seen));
 });

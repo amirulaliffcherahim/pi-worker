@@ -40,8 +40,13 @@ export function stripLeadFields(params) {
 export function createDelegateWrapper(getSettings, ledger = new FailureLedger()) {
 	return async function guarded(params, run) {
 		const { launch, taskId, retry } = stripLeadFields(params);
-		if (!isLaunch(launch))
+		if (!isLaunch(launch)) {
+			// Role writes (create/update) are checked here; status, stop and the rest pass straight through.
+			const roleGate = gateLaunch(launch, getSettings(), 0);
+			if (roleGate.error)
+				throw new Error(roleGate.error);
 			return run(launch);
+		}
 		if (retry && taskId)
 			ledger.record(taskId);
 		const settings = getSettings();

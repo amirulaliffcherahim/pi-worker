@@ -59,6 +59,7 @@ import { resolveWaitToolConfig } from "../runs/background/subagent-wait.js";
 import { registerWaitTool } from "../runs/background/wait-tool.js";
 import { registerSubagentToolActivation } from "./tool-activation.js";
 import { warnIfUpstreamLoaded } from "./collision-guard.js";
+import { forceWorkerFeatureLimits } from "../lead/feature-limits.js";
 import { registerLeadGate } from "../lead/lead-gate.js";
 import { registerDiffTool } from "../lead/diff-tool.js";
 import { createDelegateWrapper } from "../lead/delegate-wrapper.js";
@@ -232,7 +233,7 @@ export default function registerSubagentExtension(pi) {
     DIRS.results = ensureAccessibleDir(DIRS.results);
     DIRS.async = ensureAccessibleDir(DIRS.async);
     cleanupOldChainDirs();
-    const config = loadConfig();
+    const config = forceWorkerFeatureLimits(loadConfig());
     setDeclarationPinning(pi, config.pinToolDeclarations !== false);
     const waitToolConfig = resolveWaitToolConfig(config.waitTool);
     const asyncByDefault = resolveAsyncByDefault(config);
