@@ -52,3 +52,22 @@ test("fails loud outside a git repo", () => {
 		rmSync(dir, { recursive: true, force: true });
 	}
 });
+
+test("lists untracked files a worker created, and honours the path filter", () => {
+	const dir = mkdtempSync(join(tmpdir(), "pw-untracked-"));
+	try {
+		const git = (...a) => execFileSync("git", ["-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...a], { stdio: "pipe" });
+		git("init", "-q");
+		writeFileSync(join(dir, "f.txt"), "one\n");
+		git("add", "-A");
+		git("commit", "-qm", "init");
+		writeFileSync(join(dir, "new-file.js"), "x\n");
+		const all = runDiff(dir, {});
+		assert.match(all, /Untracked \(new\) files/);
+		assert.match(all, /new-file\.js/);
+		assert.doesNotMatch(runDiff(dir, { path: "f.txt" }), /new-file\.js/);
+		assert.notEqual(runDiff(dir, {}), "No changes against HEAD.");
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
