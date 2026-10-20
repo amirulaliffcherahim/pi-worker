@@ -37,9 +37,23 @@ export function stripLeadFields(params) {
 
 // Wraps the delegate_task executor with brief, model and thinking gates, the worker contract, the report cap
 // and the failure ledger.
-export function createDelegateWrapper(getSettings, ledger = new FailureLedger()) {
+// Actions that would start or re-run a child with new text or a new model, skipping every launch gate.
+export const BLOCKED_ACTIONS = Object.freeze(["resume", "steer", "append-step", "reuse"]);
+
+export function blockedActionError(launch) {
+	return BLOCKED_ACTIONS.includes(launch.action)
+		? `pi-worker: action '${launch.action}' is disabled because it bypasses the brief, model and thinking gates. Launch a new task with a fresh brief and the same taskId.`
+		: undefined;
+}
+
+// `env` is a function returning { agents, resolveAgent, sessionThinking } for the current cwd; optional so the gate stays testable.
+export function createDelegateWrapper(getSettings, ledger = new FailureLedger(), getEnv = () => ({})) {
 	return async function guarded(params, run) {
-		const { launch, taskId, retry } = stripLeadFields(params);
+		// retry is accepted and ignored: only objective signals count as failure, so the lead cannot self-escalate.
+		const { launch, taskId } = stripLeadFields(params);
+		const blocked = blockedActionError(launch);
+		if (blocked)
+			throw new Error(blocked);
 		if (!isLaunch(launch)) {
 			// Role writes (create/update) are checked here; status, stop and the rest pass straight through.
 			const roleGate = gateLaunch(launch, getSettings(), 0);
@@ -47,10 +61,8 @@ export function createDelegateWrapper(getSettings, ledger = new FailureLedger())
 				throw new Error(roleGate.error);
 			return run(launch);
 		}
-		if (retry && taskId)
-			ledger.record(taskId);
 		const settings = getSettings();
-		const gated = gateLaunch(launch, settings, ledger.count(taskId));
+		const gated = gateLaunch(launch, settings, ledger.count(taskId), getEnv());
 		if (gated.error)
 			throw new Error(gated.error);
 		let result;

@@ -16,7 +16,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { Box, Container, Spacer, Text } from "@earendil-works/pi-tui";
-import { clearAgentDiscoveryCache, discoverAgentSnapshot, discoverAgents, discoverAgentsAll } from "../agents/agents.js";
+import { clearAgentDiscoveryCache, discoverAgentSnapshot, discoverAgents, discoverAgentsAll, resolveAgentName } from "../agents/agents.js";
 import { resolveGlobalNpmRoot } from "../agents/global-npm-root.js";
 import { buildAdvertisedAgentCatalog, buildAdvertisedAgentPrompt } from "../agents/advertised-agent-prompt.js";
 import { clearRuntimeAgentsForPi, listRuntimeAgentConfigs, mergeRuntimeAgents } from "../agents/runtime-agent-registry.js";
@@ -227,7 +227,13 @@ export default function registerSubagentExtension(pi) {
     }
     registerLeadGate(pi);
     registerDiffTool(pi);
-    const guardedDelegate = createDelegateWrapper(() => pi.getSettings());
+    // Read at call time: the cwd, the discovered agents and the session thinking level all change between launches.
+    const delegateEnv = () => {
+        const ctx = state.lastUiContext;
+        const discovered = discoverAgents(ctx?.cwd ?? state.baseCwd ?? process.cwd(), "both", ctx?.model?.provider, { globalNpmRoot: globalRoot });
+        return { agents: discovered.agents, resolveAgent: resolveAgentName, sessionThinking: readMainThinkingLevel(() => pi.getThinkingLevel()) };
+    };
+    const guardedDelegate = createDelegateWrapper(() => pi.getSettings(), undefined, delegateEnv);
     const runtimeRegistry = getRuntimeRegistry();
     setMainThinkingLevelSource(() => readMainThinkingLevel(() => pi.getThinkingLevel()));
     DIRS.results = ensureAccessibleDir(DIRS.results);

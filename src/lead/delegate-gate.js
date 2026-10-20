@@ -1,5 +1,6 @@
 import { compareThinkingLevels } from "../shared/thinking-ceiling.js";
 import { THINKING_LEVELS } from "../shared/model-info.js";
+import { checkUnitOverrides, pinNeeded, resolveUnitAgents } from "./agent-gate.js";
 
 // Hard rules for every delegate_task launch. Code decides, the lead's judgement only picks inside the limits.
 // Order of checks: role, workflow ban, brief size, model required and allowlisted, thinking clamp.
@@ -152,8 +153,10 @@ export function checkRole(params, settings) {
 /**
  * Returns { error } to refuse the call, or { params, notices } with the model suffix clamped.
  * `failures` is the count already recorded for this launch's taskId.
+ * `env` supplies what only the runtime knows: `agents` (discovered list), `resolveAgent(name, agents)`
+ * and `sessionThinking` (the level a child gets when neither the model nor its agent file sets one).
  */
-export function gateLaunch(params, settings, failures) {
+export function gateLaunch(params, settings, failures, env = {}) {
 	const roleError = checkRole(params, settings);
 	if (roleError)
 		return { error: roleError };
@@ -176,10 +179,28 @@ export function gateLaunch(params, settings, failures) {
 	const modelError = checkModel(id, rules.enabledModels);
 	if (modelError)
 		return { error: modelError };
+	const overrideError = checkUnitOverrides(params);
+	if (overrideError)
+		return { error: overrideError };
+	let configs = [];
+	if (env.agents && env.resolveAgent) {
+		const resolved = resolveUnitAgents(params, env.agents, env.resolveAgent, rules.allowedTools);
+		if (resolved.error)
+			return { error: resolved.error };
+		configs = resolved.configs;
+	}
 	const allowed = allowedThinking(rules.ceiling, failures);
 	const { level: nextLevel, clamped } = clampThinking(level, allowed);
+	// With no suffix the agent file (or the session) decides the level, so pin the ceiling when either exceeds it.
+	const pin = pinNeeded({ suffixLevel: level, configs, sessionDefault: env.sessionThinking, allowed });
+	const finalLevel = nextLevel ?? pin;
+	const notices = [];
+	if (clamped)
+		notices.push(`pi-worker: thinking '${level}' clamped to '${allowed}'.`);
+	if (pin)
+		notices.push(`pi-worker: agent or session default exceeds '${allowed}'; pinned to '${pin}'.`);
 	// A worker gets the brief only. Fork and profile contexts would copy the lead chat into it.
-	const fresh = { ...params, context: "fresh" };
-	const notices = clamped ? [`pi-worker: thinking '${level}' clamped to '${allowed}'.`] : [];
-	return { params: nextLevel ? { ...fresh, model: `${id}:${nextLevel}` } : fresh, notices, allowedThinking: allowed };
+	// async:false so the launch returns a real result; async runs return at launch, before any failure is visible.
+	const fresh = { ...params, context: "fresh", async: false };
+	return { params: finalLevel ? { ...fresh, model: `${id}:${finalLevel}` } : fresh, notices, allowedThinking: allowed };
 }

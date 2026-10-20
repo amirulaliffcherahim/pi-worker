@@ -150,12 +150,13 @@ test("success never counts, and different taskIds do not share failures", async 
 	assert.equal(other.launched[2].model.endsWith(":medium"), true);
 });
 
-test("retry:true counts a wrong-but-clean result", async () => {
+test("retry:true cannot self-escalate: only objective failures count", async () => {
 	const { send, launched } = harness([[{ exitCode: 0 }]]);
 	await send();
 	await send({ retry: true });
 	await send({ retry: true });
-	assert.equal(launched[2].model.endsWith(":high"), true);
+	assert.ok(launched.every((l) => l.model.endsWith(":medium")));
+	assert.ok(launched.every((l) => !("retry" in l)));
 });
 
 test("without a taskId nothing escalates", async () => {

@@ -265,10 +265,9 @@ const { agent, task, workflow, args, async, model, cwd, worktree, output, action
 export const SUBAGENT_OPTION_KEYS = Object.keys(SubagentOptionProperties);
 /** Values the model passes in `options`, checked with the same property schemas as flat callers. */
 export const SubagentOptionParams = Type.Object(SubagentOptionProperties, { additionalProperties: false });
-const taskId = Type.Optional(Type.String({ minLength: 1, maxLength: 64, description: "Stable id for one unit of work. Reuse it when re-delegating so failures are counted; 2 failures raise worker thinking to high." }));
-const retry = Type.Optional(Type.Boolean({ description: "True only when the previous attempt for this taskId finished without error but its result was wrong. Real errors are counted automatically." }));
+const taskId = Type.Optional(Type.String({ minLength: 1, maxLength: 64, description: "Stable id for one unit of work. Reuse it when re-delegating so real failures are counted; 2 failures raise worker thinking to high." }));
 const ModelTopLevelProperties = {
-    taskId, retry,
+    taskId,
     agent, task, workflow, args, async, model, cwd, worktree, output, action, id, message,
     options: Type.Optional(Type.Unsafe({ type: "object", additionalProperties: true, description: "Every field not listed here, such as acceptance, timeoutMs, context, view and index; guide tool-reference/parameter-reference." })),
 };
