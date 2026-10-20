@@ -1,6 +1,7 @@
 // Prompt text for the lead and for workers. Everything that can be tuned lives in settings under
 // piWorker.brief and piWorker.caveman, so a future adjustment needs no code change.
 import { DEFAULT_BRIEF_MAX_TOKENS, DEFAULT_MAX_PARALLEL } from "./delegate-gate.js";
+import { DEFAULT_CATEGORIES, resolveCategories } from "./categories.js";
 
 const SETTINGS_KEY = "piWorker";
 
@@ -72,37 +73,13 @@ export function renderWorkerRules(template) {
 	return parts.join("\n\n");
 }
 
-export { DEFAULT_MAX_PARALLEL };
-export const DEFAULT_CATEGORIES = Object.freeze([
-	{ key: "recon", title: "Recon", agent: "scout", hint: "Find files, entry points, data flow. Read-only, cheap model." },
-	{ key: "build", title: "Build", agent: "worker", hint: "Edit code, add tests, run them. The only slice that writes." },
-	{ key: "review", title: "Review", agent: "reviewer", hint: "Check a finished diff for bugs and scope creep. Read-only." },
-	{ key: "decide", title: "Decide", agent: "oracle", hint: "Check a plan against the code before any build slice. Read-only." },
-	{ key: "research", title: "Research", agent: "researcher", hint: "Web lookups and docs. Never touches the repo." },
-	{ key: "audit", title: "Audit", agent: "evidence-auditor", hint: "Verify that research claims match their sources." },
-	{ key: "misc", title: "Small jobs", agent: "delegate", hint: "One-off chores that fit no other category." },
-]);
-
-
-function validCategories(value) {
-	if (!Array.isArray(value))
-		return DEFAULT_CATEGORIES;
-	const cleaned = value
-		.filter((entry) => entry && typeof entry === "object" && entry.enabled !== false && typeof entry.agent === "string" && entry.agent.trim())
-		.map((entry, index) => ({
-			key: typeof entry.key === "string" && entry.key.trim() ? entry.key.trim() : `category${index}`,
-			title: typeof entry.title === "string" && entry.title.trim() ? entry.title.trim() : entry.agent.trim(),
-			agent: entry.agent.trim(),
-			hint: typeof entry.hint === "string" ? entry.hint.trim() : "",
-		}));
-	return cleaned.length > 0 ? cleaned : DEFAULT_CATEGORIES;
-}
+export { DEFAULT_MAX_PARALLEL, DEFAULT_CATEGORIES };
 
 export function resolveSlicing(settings) {
 	const root = settings?.[SETTINGS_KEY] ?? {};
 	const parallel = root.maxParallel;
 	return {
-		categories: validCategories(root.categories),
+		categories: resolveCategories(settings),
 		maxParallel: Number.isInteger(parallel) && parallel > 0 ? parallel : DEFAULT_MAX_PARALLEL,
 	};
 }
@@ -124,7 +101,7 @@ export function renderRoster(roster) {
 export function renderSlicingRules(slicing, roster) {
 	const available = new Set((roster ?? []).map((agent) => agent.name));
 	const usable = roster && roster.length > 0 ? slicing.categories.filter((category) => available.has(category.agent)) : slicing.categories;
-	const table = usable.map((category) => `- ${category.title} -> ${category.agent}: ${category.hint}`).join("\n");
+	const table = usable.map((category) => `- ${category.title} -> ${category.agent}${category.effort ? ` (${category.effort})` : ""}: ${category.hint}`).join("\n");
 	return [
 		"When the user gives a goal, slice it before delegating:",
 		"1. Read enough to split the goal into slices. One slice has one category, one worker and its own brief.",
@@ -149,7 +126,7 @@ export function renderLeadPrompt(template, options = {}) {
 		renderSlicingRules(slicing, roster),
 		`Brief limit: ${template.maxTokens} tokens. Sections, in order:\n${bulletList(template.sections)}`,
 		template.instructions,
-		"Pick each worker's model from enabledModels by difficulty, and always pass a model. Cheap models for lookups and mechanical edits, stronger for design or hard debugging. Thinking is capped at medium. Reuse a slice's taskId when re-delegating it: after 2 real failures the cap lifts to high. xhigh and max are not available to you.",
+		"Models: leave model out and each worker gets its category default. Pass model only to override it, from enabledModels. Effort comes from the category; the most you may ask for is medium. Reuse a slice's taskId when re-delegating it: after 2 real failures the cap lifts to high. xhigh and max are not available to you.",
 		"Review each report. Check changes with worker_diff stat first, then one file. Then tell the user what was found, what changed and what you suggest.",
 		renderReportContract(template),
 	].filter(Boolean);

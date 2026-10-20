@@ -22,15 +22,11 @@ export function collectUnits(params) {
 	return units;
 }
 
-/** Model and thinking are set once at the top level. A per-child value would dodge the allowlist and the clamp. */
-export function checkUnitOverrides(params) {
+/** A child may carry its own model (it is checked against enabledModels), but never its own thinking level. */
+export function checkThinkingOverrides(params) {
 	for (const { label, unit } of collectUnits(params)) {
-		if (unit === params)
-			continue;
-		for (const key of ["model", "thinking"]) {
-			if (unit?.[key] !== undefined)
-				return `pi-worker: '${label}' sets its own ${key}. Set model once at the top level of the launch.`;
-		}
+		if (unit !== params && unit?.thinking !== undefined)
+			return `pi-worker: '${label}' sets its own thinking. Use a model suffix such as :low, or leave it to the category default.`;
 	}
 	return undefined;
 }
@@ -177,4 +173,9 @@ export function checkSlices(params, { maxParallel, agents }) {
 			return overlap;
 	}
 	return undefined;
+}
+
+/** One resolved agent (or undefined for an unknown name) per unit, in collectUnits order. */
+export function resolveEachUnit(params, agents, resolve) {
+	return collectUnits(params).map(({ label, unit }) => ({ label, unit, agent: resolve(unit.agent.trim(), agents).agent }));
 }

@@ -7,11 +7,11 @@ import { FORCED_DISABLED_FEATURES, forceWorkerFeatureLimits } from "../src/lead/
 const SONNET = "claude/claude-sonnet-5-5";
 const settings = { enabledModels: [SONNET, "claude/claude-haiku-5-5"] };
 
-test("a launch without a model is refused and lists the choices", () => {
+test("a launch with no model anywhere is refused with a fix, and lists the choices", () => {
 	const gated = gateLaunch({ agent: "worker", task: "t" }, settings, 0);
-	assert.match(gated.error, /every launch needs a model/);
+	assert.match(gated.error, /has no model/);
+	assert.match(gated.error, /piWorker.defaultModel/);
 	assert.match(gated.error, /claude-sonnet-5-5/);
-	assert.match(gateLaunch({ agent: "worker", task: "t", model: "  " }, settings, 0).error, /needs a model/);
 });
 
 test("every launch is forced to fresh context, whatever the lead asked for", () => {

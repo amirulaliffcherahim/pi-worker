@@ -1,6 +1,10 @@
 import { compareThinkingLevels } from "../shared/thinking-ceiling.js";
 import { THINKING_LEVELS } from "../shared/model-info.js";
-import { checkSlices, checkUnitOverrides, pinNeeded, resolveUnitAgents } from "./agent-gate.js";
+import { HARD_MAX_THINKING } from "./categories.js";
+export { HARD_MAX_THINKING };
+import { checkSlices, checkThinkingOverrides, pinNeeded, resolveUnitAgents } from "./agent-gate.js";
+import { resolveCategories } from "./categories.js";
+import { resolveUnitModels } from "./unit-models.js";
 
 // Hard rules for every delegate_task launch. Code decides, the lead's judgement only picks inside the limits.
 // Order of checks: role, workflow ban, brief size, model required and allowlisted, thinking clamp.
@@ -13,8 +17,6 @@ export const DEFAULT_THINKING_CEILING = "medium";
 export const ESCALATED_THINKING = "high";
 export const ESCALATE_AFTER_FAILURES = 2;
 export const DEFAULT_MAX_PARALLEL = 4;
-// xhigh and max are never reachable through delegation. Only the user applies them by hand, outside pi-worker.
-export const HARD_MAX_THINKING = "high";
 // Web tools are read-only and let researcher and evidence-auditor work. Workers still cannot delegate.
 export const DEFAULT_ALLOWED_TOOLS = Object.freeze(["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "web_search", "fetch_content", "get_search_content", "source_check"]);
 const ROLE_ACTIONS = new Set(["create", "update"]);
@@ -35,7 +37,8 @@ export function resolveDelegateSettings(settings) {
 	const allowedTools = Array.isArray(root?.allowedTools) ? root.allowedTools.map(String) : DEFAULT_ALLOWED_TOOLS;
 	const parallel = root?.maxParallel;
 	const maxParallel = Number.isInteger(parallel) && parallel > 0 ? parallel : DEFAULT_MAX_PARALLEL;
-	return { maxTokens, ceiling, enabledModels, allowedTools, maxParallel };
+	const defaultModel = typeof root?.defaultModel === "string" && root.defaultModel.trim() ? root.defaultModel.trim() : undefined;
+	return { maxTokens, ceiling, enabledModels, allowedTools, maxParallel, defaultModel };
 }
 
 /** Every free-text brief in a launch: single task, parallel tasks, chain steps (including parallel groups). */
@@ -177,18 +180,9 @@ export function gateLaunch(params, settings, failures, env = {}) {
 	const briefError = checkBriefs(params, rules.maxTokens);
 	if (briefError)
 		return { error: briefError };
-	// A missing model would let the agent file pick model and thinking, skipping the clamp. Always name one.
-	if (typeof params.model !== "string" || params.model.trim() === "") {
-		const choices = rules.enabledModels.join(", ") || "(enabledModels is empty)";
-		return { error: `pi-worker: every launch needs a model. Pick one of: ${choices}, optionally with :off, :minimal, :low or :medium.` };
-	}
-	const { id, level } = splitModel(params.model.trim());
-	const modelError = checkModel(id, rules.enabledModels);
-	if (modelError)
-		return { error: modelError };
-	const overrideError = checkUnitOverrides(params);
-	if (overrideError)
-		return { error: overrideError };
+	const thinkingOverride = checkThinkingOverrides(params);
+	if (thinkingOverride)
+		return { error: thinkingOverride };
 	let configs = [];
 	if (env.agents && env.resolveAgent) {
 		const resolved = resolveUnitAgents(params, env.agents, env.resolveAgent, rules.allowedTools);
@@ -200,17 +194,21 @@ export function gateLaunch(params, settings, failures, env = {}) {
 			return { error: sliceError };
 	}
 	const allowed = allowedThinking(rules.ceiling, failures);
-	const { level: nextLevel, clamped } = clampThinking(level, allowed);
-	// With no suffix the agent file (or the session) decides the level, so pin the ceiling when either exceeds it.
-	const pin = pinNeeded({ suffixLevel: level, configs, sessionDefault: env.sessionThinking, allowed });
-	const finalLevel = nextLevel ?? pin;
-	const notices = [];
-	if (clamped)
-		notices.push(`pi-worker: thinking '${level}' clamped to '${allowed}'.`);
-	if (pin)
-		notices.push(`pi-worker: agent or session default exceeds '${allowed}'; pinned to '${pin}'.`);
+	const modelled = resolveUnitModels(params, {
+		rules,
+		categories: resolveCategories(settings),
+		allowed,
+		defaultModel: rules.defaultModel,
+		splitModel,
+		checkModel,
+		lookup: (name) => (env.agents && env.resolveAgent ? env.resolveAgent(name, env.agents).agent : undefined),
+		pinFor: (agent) => pinNeeded({ suffixLevel: undefined, configs: agent ? [agent] : [], sessionDefault: env.sessionThinking, allowed }),
+	});
+	if (modelled.error)
+		return { error: modelled.error };
+	void configs;
 	// A worker gets the brief only. Fork and profile contexts would copy the lead chat into it.
 	// async:false so the launch returns a real result; async runs return at launch, before any failure is visible.
-	const fresh = { ...params, context: "fresh", async: false };
-	return { params: finalLevel ? { ...fresh, model: `${id}:${finalLevel}` } : fresh, notices, allowedThinking: allowed };
+	const fresh = { ...modelled.params, context: "fresh", async: false };
+	return { params: fresh, notices: modelled.notices, allowedThinking: allowed };
 }

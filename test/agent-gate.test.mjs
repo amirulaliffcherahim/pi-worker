@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkAgentConfig, checkUnitOverrides, collectUnits, pinNeeded, resolveUnitAgents } from "../src/lead/agent-gate.js";
+import { checkAgentConfig, checkThinkingOverrides, collectUnits, pinNeeded, resolveUnitAgents } from "../src/lead/agent-gate.js";
 import { gateLaunch } from "../src/lead/delegate-gate.js";
 import { BLOCKED_ACTIONS, blockedActionError, createDelegateWrapper } from "../src/lead/delegate-wrapper.js";
 
@@ -30,20 +30,28 @@ test("collectUnits walks single, tasks, chain and chain parallel", () => {
 	assert.deepEqual(collectUnits({ agent: "x", task: "t" }).map((u) => u.label), ["task"]);
 });
 
-test("a per-child model or thinking is refused so it cannot dodge the allowlist or clamp", () => {
-	assert.match(checkUnitOverrides({ tasks: [{ agent: "a", task: "t", model: "x/y:high" }] }), /tasks\[0\].*own model/);
-	assert.match(checkUnitOverrides({ chain: [{ parallel: [{ agent: "a", task: "t", thinking: "high" }] }] }), /own thinking/);
-	assert.equal(checkUnitOverrides({ tasks: [{ agent: "a", task: "t" }] }), undefined);
-	assert.equal(checkUnitOverrides({ agent: "a", task: "t", model: SONNET }), undefined);
+test("a per-child thinking is refused; a per-child model is allowed", () => {
+	assert.match(checkThinkingOverrides({ tasks: [{ agent: "a", task: "t", thinking: "high" }] }), /own thinking/);
+	assert.match(checkThinkingOverrides({ chain: [{ parallel: [{ agent: "a", task: "t", thinking: "high" }] }] }), /own thinking/);
+	assert.equal(checkThinkingOverrides({ tasks: [{ agent: "a", task: "t", model: "x/y" }] }), undefined);
+	assert.equal(checkThinkingOverrides({ agent: "a", task: "t", model: SONNET }), undefined);
 });
 
-test("the override check reaches gateLaunch for every shape", () => {
+test("a per-child model is checked against enabledModels and its suffix is clamped", () => {
+	const bad = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", model: "openai/gpt-9" }] }, settings, 0, env("low"));
+	assert.match(bad.error, /not in enabledModels/);
+	const clamped = gateLaunch({ model: SONNET, chain: [{ agent: "worker", task: "t", model: SONNET + ":high" }] }, settings, 0, env("low"));
+	assert.equal(clamped.params.chain[0].model, SONNET + ":medium");
+	assert.match(clamped.notices.join(" "), /thinking .high. clamped/);
+});
+
+test("a per-child thinking is refused by gateLaunch for every shape", () => {
 	for (const params of [
-		{ model: SONNET, tasks: [{ agent: "worker", task: "t", model: "claude/claude-haiku-5-5:high" }] },
+		{ model: SONNET, tasks: [{ agent: "worker", task: "t", thinking: "high" }] },
 		{ model: SONNET, chain: [{ agent: "worker", task: "t", thinking: "high" }] },
-		{ model: SONNET, chain: [{ parallel: [{ agent: "worker", task: "t", model: "x/y" }] }] },
+		{ model: SONNET, chain: [{ parallel: [{ agent: "worker", task: "t", thinking: "high" }] }] },
 	]) {
-		assert.match(gateLaunch(params, settings, 0, env("low")).error, /sets its own/);
+		assert.match(gateLaunch(params, settings, 0, env("low")).error, /sets its own thinking/);
 	}
 });
 
@@ -80,8 +88,8 @@ test("a session default above the ceiling is pinned when the agent file sets not
 	assert.equal(gateLaunch(launch("bare"), settings, 0, env("low")).params.model, SONNET);
 });
 
-test("no pin when the agent and session are within the ceiling", () => {
-	assert.equal(gateLaunch(launch("worker"), settings, 0, env("low")).params.model, SONNET);
+test("worker takes its Build category effort when no suffix is given", () => {
+	assert.equal(gateLaunch(launch("worker"), settings, 0, env("low")).params.model, SONNET + ":medium");
 });
 
 test("an explicit suffix wins and is clamped as before; no second pin", () => {
