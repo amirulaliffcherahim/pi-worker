@@ -8,7 +8,7 @@ export function registerWaitTool(pi, state, enabled = resolveWaitToolConfig().en
 {all:true} — all work active at call time.
 {id} — one run; a finished async run returns its result references.
 {id,nonBlocking:true} — subscribe to that run's wake and return now.
-Timeout or a user message ends the wait without error; work keeps running.${enabled ? "" : "\nDisabled by config.waitTool or PI_SUBAGENT_WAIT_TOOL_ENABLED: returns immediately."}`;
+Timeout or a user message ends the wait without error; work keeps running.${enabled ? "" : "\nDisabled by config.waitTool or PI_WORKER_WAIT_TOOL_ENABLED: returns immediately."}`;
     // Messages typed while the agent is busy (steer or follow-up) end open waits so they reach the model.
     const userInputWaits = new Set();
     pi.on("input", (event) => {

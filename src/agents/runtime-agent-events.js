@@ -1,5 +1,5 @@
 import { registerRuntimeAgent } from "./runtime-agent-registry.js";
-export const RUNTIME_AGENT_REGISTER_EVENT = "pi-subagents:runtime-agent-register:v1";
+export const RUNTIME_AGENT_REGISTER_EVENT = "pi-worker:runtime-agent-register:v1";
 export const RUNTIME_AGENT_REGISTER_VERSION = 1;
 function errorFrom(value) {
     return value instanceof Error ? value : new Error(String(value));

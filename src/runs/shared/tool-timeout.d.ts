@@ -1,4 +1,4 @@
-export declare const TOOL_TIMEOUT_ENV = "PI_SUBAGENT_TOOL_TIMEOUT_MS";
+export declare const TOOL_TIMEOUT_ENV = "PI_WORKER_TOOL_TIMEOUT_MS";
 export declare const DEFAULT_FAST_TOOL_TIMEOUT_MS = 300000;
 export declare const DEFAULT_FAST_TOOL_TIMEOUT_TOOLS: Set<string>;
 /** Tools whose normal job can be to wait for a person or another run. */
@@ -19,7 +19,7 @@ export interface ToolTimeoutResolutionInput {
     agentValue?: number;
     /** Global extension config.toolTimeoutMs (third precedence). */
     configValue?: unknown;
-    /** PI_SUBAGENT_TOOL_TIMEOUT_MS environment override (lowest precedence). */
+    /** PI_WORKER_TOOL_TIMEOUT_MS environment override (lowest precedence). */
     envValue?: string | undefined;
 }
 /** Resolve the configured hard timeout. Default fast-tool timeouts apply later per tool name. */

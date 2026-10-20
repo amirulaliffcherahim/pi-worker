@@ -2650,7 +2650,7 @@ export interface ExtensionConfig {
      * subagent tool call inside the child; the run-level timeout remains
      * authoritative. Known-fast built-in tools have a five-minute default when
      * this is undefined. Precedence: call param > agent frontmatter > this config >
-     * PI_SUBAGENT_TOOL_TIMEOUT_MS. Must be a positive integer; invalid values
+     * PI_WORKER_TOOL_TIMEOUT_MS. Must be a positive integer; invalid values
      * are rejected with an error.
      */
     toolTimeoutMs?: number;

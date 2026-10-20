@@ -44,7 +44,7 @@ export function snapshotRequiredChildExtensions(value, label = "Required child e
     }));
 }
 function registry() {
-    const key = Symbol.for("pi-subagents.required-child-extensions.v1");
+    const key = Symbol.for("pi-worker.required-child-extensions.v1");
     const root = globalThis;
     const existing = root[key];
     if (existing === undefined) {

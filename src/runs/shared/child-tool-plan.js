@@ -196,9 +196,9 @@ export function resolvePiLaunchToolPlan(input) {
     const excludeTools = [...new Set((input.excludeTools ?? []).map((tool) => tool.trim()).filter(Boolean))];
     const excludedToolSet = new Set(excludeTools);
     const effectiveDeclaredBuiltinTools = declaredBuiltinTools.filter((tool) => !excludedToolSet.has(tool));
-    const fanoutAuthorized = effectiveDeclaredBuiltinTools.includes("subagent") || (input.allowNestedSubagents === true &&
-        !excludedToolSet.has("subagent") &&
-        (!allowedToolSet || allowedToolSet.has("subagent")));
+    const fanoutAuthorized = effectiveDeclaredBuiltinTools.includes("delegate_task") || (input.allowNestedSubagents === true &&
+        !excludedToolSet.has("delegate_task") &&
+        (!allowedToolSet || allowedToolSet.has("delegate_task")));
     if (effectiveDeclaredBuiltinTools.includes("subagent_supervisor") && !fanoutAuthorized) {
         throw new Error("Tool 'subagent_supervisor' requires fanout authorization: include 'subagent' in the effective tools allowlist or enable allowNestedSubagents.");
     }

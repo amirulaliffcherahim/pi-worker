@@ -1,9 +1,9 @@
 import * as path from "node:path";
 export const HERDR_PI_PROTOCOL = 1;
 export const HERDR_PI_MAX_FRAME_BYTES = 1024 * 1024;
-export const HERDR_PI_MODE_ENV = "PI_SUBAGENTS_HERDR_BRIDGE";
-export const HERDR_PI_RUN_ENV = "PI_SUBAGENTS_HERDR_RUN_ID";
-export const HERDR_PI_RUNTIME_DIR_ENV = "PI_SUBAGENTS_HERDR_RUNTIME_DIR";
+export const HERDR_PI_MODE_ENV = "PI_WORKER_HERDR_BRIDGE";
+export const HERDR_PI_RUN_ENV = "PI_WORKER_HERDR_RUN_ID";
+export const HERDR_PI_RUNTIME_DIR_ENV = "PI_WORKER_HERDR_RUNTIME_DIR";
 const SAFE_ID = /^[A-Za-z0-9_-]{8,96}$/u;
 export function validateHerdrPiRunId(value) {
     if (typeof value !== "string" || !SAFE_ID.test(value))

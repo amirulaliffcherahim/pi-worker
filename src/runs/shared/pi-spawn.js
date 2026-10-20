@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PI_CODING_AGENT_PACKAGE_ROOT_ENV } from "../../shared/utils.js";
 export const PI_CODING_AGENT_PACKAGE = "@earendil-works/pi-coding-agent";
-export const PI_SUBAGENT_PI_BINARY_ENV = "PI_SUBAGENT_PI_BINARY";
+export const PI_WORKER_PI_BINARY_ENV = "PI_WORKER_PI_BINARY";
 export function findPiPackageRootFromEntry(entryPoint) {
     let dir = path.dirname(entryPoint);
     while (dir !== path.dirname(dir)) {
@@ -81,7 +81,7 @@ export function resolveBunPiExecutable(deps = {}) {
     if (!bunVersion || !entry || !/^(?:\/\$bunfs\/|B:[\\/]~BUN[\\/])/.test(entry))
         return undefined;
     const env = deps.env ?? process.env;
-    return env[PI_SUBAGENT_PI_BINARY_ENV]?.trim() || (deps.execPath ?? process.execPath);
+    return env[PI_WORKER_PI_BINARY_ENV]?.trim() || (deps.execPath ?? process.execPath);
 }
 function isNodeScriptPath(filePath) {
     return /\.(?:mjs|cjs|js)$/i.test(filePath);
@@ -183,7 +183,7 @@ export function resolvePiCliScript(deps = {}) {
 export function getPiSpawnCommand(args, deps = {}) {
     const platform = deps.platform ?? process.platform;
     const env = deps.env ?? process.env;
-    const piBinary = env[PI_SUBAGENT_PI_BINARY_ENV]?.trim();
+    const piBinary = env[PI_WORKER_PI_BINARY_ENV]?.trim();
     if (piBinary) {
         if (platform === "win32" && isNodeScriptPath(piBinary)) {
             return {
@@ -205,7 +205,7 @@ export function getPiSpawnCommand(args, deps = {}) {
         };
     }
     if (platform === "win32") {
-        throw new Error(`Could not resolve the Pi CLI on Windows. Set ${PI_SUBAGENT_PI_BINARY_ENV} or ensure ${PI_CODING_AGENT_PACKAGE} is installed.`);
+        throw new Error(`Could not resolve the Pi CLI on Windows. Set ${PI_WORKER_PI_BINARY_ENV} or ensure ${PI_CODING_AGENT_PACKAGE} is installed.`);
     }
     return { command: "pi", args };
 }

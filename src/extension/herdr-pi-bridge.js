@@ -149,7 +149,7 @@ export default function registerHerdrPiBridge(pi) {
         }
         send({ type: "control-ack", requestId, operation: request.operation, nativeSessionId });
     };
-    pi.registerCommand("pi-subagents-bridge", { description: "Internal pane-native request dispatch", handler: (args, ctx) => execute(args.trim(), ctx) });
+    pi.registerCommand("pi-worker-bridge", { description: "Internal pane-native request dispatch", handler: (args, ctx) => execute(args.trim(), ctx) });
     const on = pi.on;
     on("before_agent_start", (event) => resolvedSystemPrompt && resolvedContextPolicy ? { systemPrompt: `${rewriteSubagentPrompt(typeof event.systemPrompt === "string" ? event.systemPrompt : "", { inheritProjectContext: resolvedContextPolicy.inheritProjectContext, inheritGlobalContext: resolvedContextPolicy.inheritGlobalContext, inheritSkills: resolvedContextPolicy.inheritSkills })}\n\n<active_agent name=${JSON.stringify(resolvedContextPolicy.agent)}/>\n\n${resolvedSystemPrompt}` } : undefined);
     on("session_start", (_event, ctx) => {

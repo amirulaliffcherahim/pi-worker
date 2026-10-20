@@ -2,7 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { AcceptanceInput, AcceptanceRole, AgentRunnerConfig, OutputMode, ToolBudgetConfig } from "../shared/types.ts";
 import { type PermissionRules } from "../runs/shared/permissions.ts";
 import { type AgentConfig, type AgentDefaultContext, type AgentDiscoveryDiagnostic, type RuntimeAgentSettingsContext } from "./agents.ts";
-export declare const RUNTIME_AGENT_REGISTRY_KEY = "pi-subagents.runtime-agents.v1";
+export declare const RUNTIME_AGENT_REGISTRY_KEY = "pi-worker.runtime-agents.v1";
 export interface RuntimeAgentDefinition {
     description: string;
     systemPrompt: string;

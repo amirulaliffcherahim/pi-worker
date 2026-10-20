@@ -123,7 +123,7 @@ export function resolveCleanupRepoRoot(repo) {
     return realpathExisting(toplevel);
 }
 function resolveCleanupBaseDir(repoRoot, configuredBaseDir) {
-    const raw = configuredBaseDir ?? process.env.PI_SUBAGENTS_WORKTREE_DIR;
+    const raw = configuredBaseDir ?? process.env.PI_WORKER_WORKTREE_DIR;
     let dedicatedRoot;
     if (raw === undefined || (configuredBaseDir === undefined && !raw.trim())) {
         dedicatedRoot = path.join(path.dirname(repoRoot), "worktrees");

@@ -68,7 +68,7 @@ function executableNames(command, env) {
     return [command, ...extensions.map((extension) => `${command}${extension.toLowerCase()}`), ...extensions.map((extension) => `${command}${extension.toUpperCase()}`)];
 }
 export function resolveOrcaCommand(env = process.env) {
-    const override = env.PI_SUBAGENT_ORCA_BINARY?.trim();
+    const override = env.PI_WORKER_ORCA_BINARY?.trim();
     if (override)
         return executableFile(override) ? override : undefined;
     for (const directory of (env.PATH ?? "").split(path.delimiter).filter(Boolean)) {
@@ -297,7 +297,7 @@ function scheduleCleanup(nodeExecutable, paths) {
 }
 function loadOrcaProgressTabsConfig() {
     try {
-        const configPath = path.join(getAgentDir(), "extensions", "subagent", "config.json");
+        const configPath = path.join(getAgentDir(), "extensions", "pi-worker", "config.json");
         const parsed = JSON.parse(fs.readFileSync(configPath, "utf-8"));
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
             return undefined;

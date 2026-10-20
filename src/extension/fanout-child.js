@@ -25,7 +25,7 @@ function getSubagentSessionRoot(parentSessionFile) {
         const sessionsDir = path.dirname(parentSessionFile);
         return path.join(sessionsDir, baseName);
     }
-    return fs.mkdtempSync(path.join(os.tmpdir(), "pi-subagent-session-"));
+    return fs.mkdtempSync(path.join(os.tmpdir(), "pi-worker-session-"));
 }
 function expandTilde(p) {
     return p.startsWith("~/") ? path.join(os.homedir(), p.slice(2)) : p;
@@ -211,7 +211,7 @@ export default function registerFanoutChildSubagentExtension(pi, childConfig) {
     const blockedActions = listEnabled(["create", "update", "delete", "eject", "disable", "enable", "reset", "grant-spawn-budget", "lane.recordMerge", "lane.recordSupersession"]);
     const params = createSubagentParamsSchema(disabledFeatures);
     const tool = {
-        name: "subagent",
+        name: "delegate_task",
         ...MODEL_ONLY_TOOL,
         label: "Subagent",
         description: [

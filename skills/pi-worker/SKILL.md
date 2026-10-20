@@ -1,5 +1,5 @@
 ---
-name: pi-subagents
+name: pi-worker
 description: |
   Technical guidance for operator-requested delegation to builtin or custom
   subagents: bounded handoffs, parallel review, scripted workflows, async work,

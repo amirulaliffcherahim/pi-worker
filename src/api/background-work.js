@@ -1,5 +1,5 @@
 export const BACKGROUND_WORK_PROTOCOL_VERSION = 1;
-export const BACKGROUND_WORK_REGISTRY_KEY = "pi-subagents.background-work.v1";
+export const BACKGROUND_WORK_REGISTRY_KEY = "pi-worker.background-work.v1";
 const MAX_PROVIDER_NAME_LENGTH = 128;
 const MAX_PROVIDERS = 100;
 const MAX_ITEM_ID_LENGTH = 256;

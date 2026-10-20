@@ -1,4 +1,4 @@
-export const PI_SUBAGENT_EXTENSION_BINDINGS_ENV = "PI_SUBAGENT_EXTENSION_BINDINGS";
+export const PI_WORKER_EXTENSION_BINDINGS_ENV = "PI_WORKER_EXTENSION_BINDINGS";
 export const MAX_EXTENSION_BINDING_NAMESPACES = 16;
 export const MAX_EXTENSION_BINDINGS_BYTES = 16 * 1024;
 export const MAX_EXTENSION_BINDINGS_DEPTH = 16;
@@ -77,7 +77,7 @@ export function encodeExtensionBindings(input) {
     return input === undefined ? undefined : normalizeExtensionBindings(input).json;
 }
 export function omitExtensionBindingsEnv(env) {
-    const { [PI_SUBAGENT_EXTENSION_BINDINGS_ENV]: _extensionBindings, ...sanitized } = env;
+    const { [PI_WORKER_EXTENSION_BINDINGS_ENV]: _extensionBindings, ...sanitized } = env;
     return sanitized;
 }
 //# sourceMappingURL=extension-bindings.js.map

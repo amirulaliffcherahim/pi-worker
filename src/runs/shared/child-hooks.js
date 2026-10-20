@@ -152,7 +152,7 @@ function childHooks(config, capture, holdFinalDrain) {
         Object.defineProperty(runtime, "holdFinalDrain", { configurable: true, enumerable: true, writable: true, value: holdFinalDrain });
     }
     const hooks = [
-        { name: "pi-subagents:prompt-runtime", factory: function promptRuntime(pi) {
+        { name: "pi-worker:prompt-runtime", factory: function promptRuntime(pi) {
                 if (!proof?.observeNext)
                     return registerSubagentPromptRuntime(pi, runtime);
                 proof.observation = proof.observeNext;
@@ -161,10 +161,10 @@ function childHooks(config, capture, holdFinalDrain) {
             } },
     ];
     if (config.fast)
-        hooks.push({ name: "pi-subagents:fast-mode", factory: (pi) => registerSubagentFastModeExtension(pi) });
+        hooks.push({ name: "pi-worker:fast-mode", factory: (pi) => registerSubagentFastModeExtension(pi) });
     if (config.fanoutChild)
-        hooks.push({ name: "pi-subagents:fanout-child", factory: (pi) => registerFanoutChildSubagentExtension(pi, runtime) });
-    hooks.push({ name: "pi-subagents:prompt-boundary", factory: (pi) => registerSubagentPromptBoundary(pi, runtime) });
+        hooks.push({ name: "pi-worker:fanout-child", factory: (pi) => registerFanoutChildSubagentExtension(pi, runtime) });
+    hooks.push({ name: "pi-worker:prompt-boundary", factory: (pi) => registerSubagentPromptBoundary(pi, runtime) });
     if (proof) {
         proof.factories = hooks.map((hook) => hook.factory);
         promptProofs.set(hooks[0].factory, proof);

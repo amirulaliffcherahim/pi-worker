@@ -10,10 +10,10 @@ import { resolveSubagentRunId } from "./run-id-resolver.js";
 import { reconcileAsyncRun, reconcileNestedAsyncDescendants } from "./stale-run-reconciler.js";
 import { ownsRun } from "../shared/run-ownership.js";
 /** On-demand inspection of current-session async children. Re-reads canonical artifacts after the same reconciliation as status; nothing is persisted or broadcast. */
-export const INSPECT_REPLY_KIND = "pi-subagents.inspect-reply";
+export const INSPECT_REPLY_KIND = "pi-worker.inspect-reply";
 export const INSPECT_REPLY_VERSION = 1;
 export const INSPECT_WIDGET_KEY = "subagent-inspect";
-export const INSPECT_WIDGET_PREFIX = "PI_SUBAGENT_INSPECT_JSON:";
+export const INSPECT_WIDGET_PREFIX = "PI_WORKER_INSPECT_JSON:";
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_ID_LENGTH = 256;
 const MAX_LABEL_LENGTH = 160;
@@ -74,12 +74,12 @@ export function parseInspectRequest(args) {
         return { error: "requestId must match [A-Za-z0-9_-]{1,64}." };
     }
     if (!asyncId)
-        return { error: "Usage: /subagents-inspect-rpc <requestId> <asyncId> [childId] [--lines N]." };
+        return { error: "Usage: /worker-inspect-rpc <requestId> <asyncId> [childId] [--lines N]." };
     if (asyncId.length > MAX_ID_LENGTH || (childId !== undefined && childId.length > MAX_ID_LENGTH)) {
         return { error: "asyncId/childId exceed the maximum length." };
     }
     if (extra.length > 0)
-        return { error: "Too many positional arguments. Usage: /subagents-inspect-rpc <requestId> <asyncId> [childId] [--lines N]." };
+        return { error: "Too many positional arguments. Usage: /worker-inspect-rpc <requestId> <asyncId> [childId] [--lines N]." };
     if (lines !== undefined && (lines < 1 || !Number.isSafeInteger(lines)))
         return { error: "--lines must be a positive integer." };
     return { request: { requestId, asyncId, childId, lines } };

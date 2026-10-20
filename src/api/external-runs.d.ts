@@ -1,5 +1,5 @@
 export declare const EXTERNAL_RUN_REGISTRY_VERSION = 2;
-export declare const EXTERNAL_RUN_REGISTRY_KEY = "pi-subagents.external-runs.v2";
+export declare const EXTERNAL_RUN_REGISTRY_KEY = "pi-worker.external-runs.v2";
 export declare const EXTERNAL_RUN_LIMITS: {
     readonly maxCachedRuns: 100;
     readonly maxSnapshotRuns: 20;

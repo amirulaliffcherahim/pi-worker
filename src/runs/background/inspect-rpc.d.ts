@@ -1,9 +1,9 @@
 import { type AsyncStatus, type SubagentState } from "../../shared/types.ts";
 /** On-demand inspection of current-session async children. Re-reads canonical artifacts after the same reconciliation as status; nothing is persisted or broadcast. */
-export declare const INSPECT_REPLY_KIND = "pi-subagents.inspect-reply";
+export declare const INSPECT_REPLY_KIND = "pi-worker.inspect-reply";
 export declare const INSPECT_REPLY_VERSION = 1;
 export declare const INSPECT_WIDGET_KEY = "subagent-inspect";
-export declare const INSPECT_WIDGET_PREFIX = "PI_SUBAGENT_INSPECT_JSON:";
+export declare const INSPECT_WIDGET_PREFIX = "PI_WORKER_INSPECT_JSON:";
 export type InspectErrorCode = "invalid_request" | "not_found" | "foreign_session" | "stale" | "no_active_session" | "internal";
 export interface InspectRequest {
     requestId: string;

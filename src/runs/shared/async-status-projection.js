@@ -4,7 +4,7 @@ import { childThinkingLevel, splitKnownThinkingSuffix } from "../../shared/model
 import { HOST_STEP_MAX_COUNT, HOST_STEP_MAX_DETAIL_CHARS, HOST_STEP_MAX_LABEL_CHARS, HOST_STEP_MAX_PROVIDER_CHARS, HOST_STEP_MAX_REASON_CHARS, HOST_STEP_MAX_REF_CHARS, HOST_STEP_MAX_ROLE_CHARS, HOST_STEP_MAX_TARGET_CHARS, hostStepReportName, parseHostStepNode, validHostStepNodes } from "./host-step-status.js";
 import { workflowPreflightLaneForRuntimeKey } from "../../workflows/workflow-preflight.js";
 import { workflowGraphStageNodes } from "./workflow-graph.js";
-export const ASYNC_STATUS_SNAPSHOT_KIND = "pi-subagents.async-status-snapshot";
+export const ASYNC_STATUS_SNAPSHOT_KIND = "pi-worker.async-status-snapshot";
 export const ASYNC_STATUS_SNAPSHOT_VERSION = 1;
 const DEFAULT_MAX_RUNS = 20;
 const DEFAULT_MAX_CHILDREN_PER_NODE = 8;

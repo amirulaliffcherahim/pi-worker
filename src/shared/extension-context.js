@@ -15,7 +15,7 @@ export function isStaleExtensionContextError(error) {
  * no-op stub, so a non-TUI host must declare that it implements the custom-UI contract itself.
  */
 export function canRenderComponents(ctx) {
-    return ctx.mode === "tui" || process.env.PI_SUBAGENTS_COMPONENT_UI === "1";
+    return ctx.mode === "tui" || process.env.PI_WORKER_COMPONENT_UI === "1";
 }
 /** Pi throws this from action methods while extensions are still loading, before it binds the runtime. */
 export function isUnboundExtensionRuntimeError(error) {

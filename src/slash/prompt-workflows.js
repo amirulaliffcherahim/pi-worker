@@ -9,8 +9,8 @@ const RESERVED_COMMAND_NAMES = new Set([
     "chain",
     "parallel",
     "run-chain",
-    "subagents-doctor",
-    "subagents-models",
+    "worker-doctor",
+    "worker-models",
 ]);
 function readPromptFiles(cwd) {
     const files = [];
@@ -237,7 +237,7 @@ function formatWorkflowList(workflows) {
 }
 export function registerPromptWorkflowCommands(input) {
     const { pi, run } = input;
-    pi.registerCommand("prompt-workflow", {
+    pi.registerCommand("worker-prompt-workflow", {
         description: "Run a prompt template through native pi-subagents: /prompt-workflow <name> [args]",
         handler: async (rawArgs, ctx) => {
             const words = shellWords(rawArgs);

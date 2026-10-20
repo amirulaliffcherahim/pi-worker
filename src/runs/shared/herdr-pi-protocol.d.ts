@@ -1,8 +1,8 @@
 export declare const HERDR_PI_PROTOCOL = 1;
 export declare const HERDR_PI_MAX_FRAME_BYTES: number;
-export declare const HERDR_PI_MODE_ENV = "PI_SUBAGENTS_HERDR_BRIDGE";
-export declare const HERDR_PI_RUN_ENV = "PI_SUBAGENTS_HERDR_RUN_ID";
-export declare const HERDR_PI_RUNTIME_DIR_ENV = "PI_SUBAGENTS_HERDR_RUNTIME_DIR";
+export declare const HERDR_PI_MODE_ENV = "PI_WORKER_HERDR_BRIDGE";
+export declare const HERDR_PI_RUN_ENV = "PI_WORKER_HERDR_RUN_ID";
+export declare const HERDR_PI_RUNTIME_DIR_ENV = "PI_WORKER_HERDR_RUNTIME_DIR";
 export declare function validateHerdrPiRunId(value: unknown): string;
 export declare function herdrPiRuntimeRoot(agentDir: string): string;
 export declare function herdrPiRunDir(agentDir: string, runId: string): string;

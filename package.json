@@ -7,14 +7,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nicobailon/pi-subagents.git"
+    "url": "git+https://github.com/amirulaliffcherahim/pi-worker.git"
   },
-  "homepage": "https://github.com/nicobailon/pi-subagents#readme",
+  "homepage": "https://github.com/amirulaliffcherahim/pi-worker#readme",
   "bugs": {
-    "url": "https://github.com/nicobailon/pi-subagents/issues"
+    "url": "https://github.com/amirulaliffcherahim/pi-worker/issues"
   },
   "bin": {
-    "pi-subagents": "install.mjs"
+    "pi-worker": "install.mjs"
   },
   "dependencies": {
     "@js-temporal/polyfill": "0.5.1",

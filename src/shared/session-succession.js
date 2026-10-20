@@ -1,5 +1,5 @@
 // Each Pi session replacement runs in a new extension instance, so the chain lives on globalThis.
-const SUCCESSION_KEY = Symbol.for("pi-subagents.session-succession");
+const SUCCESSION_KEY = Symbol.for("pi-worker.session-succession");
 const MAX_INHERITED_SESSIONS = 8;
 // A long-lived host (pi-web) can replace sessions for days; keep only the most recent ones.
 const MAX_RECORDED_SESSIONS = 64;

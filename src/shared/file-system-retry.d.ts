@@ -1,4 +1,4 @@
-export declare const FS_RETRY_MAX_TOTAL_MS_ENV = "PI_SUBAGENT_FS_RETRY_MAX_TOTAL_MS";
+export declare const FS_RETRY_MAX_TOTAL_MS_ENV = "PI_WORKER_FS_RETRY_MAX_TOTAL_MS";
 /**
  * Clamp the retry ladder to a total sleep budget, preserving its length.
  *

@@ -4,7 +4,7 @@ import { validatePermissionRules } from "../runs/shared/permissions.js";
 import { validateToolBudgetConfig } from "../runs/shared/tool-budget.js";
 import { BUILTIN_AGENT_NAMES } from "./builtin-names.js";
 import { applyRuntimeAgentSettings } from "./agents.js";
-export const RUNTIME_AGENT_REGISTRY_KEY = "pi-subagents.runtime-agents.v1";
+export const RUNTIME_AGENT_REGISTRY_KEY = "pi-worker.runtime-agents.v1";
 const MAX_RUNTIME_AGENTS_PER_PI = 200;
 const MAX_AGENT_NAME_LENGTH = 128;
 const MAX_DESCRIPTION_LENGTH = 4_096;

@@ -199,8 +199,8 @@ export async function resolveSubagentLaunchContract(input) {
     });
     const requestedSkills = behavior.skills === false ? [] : behavior.skills;
     const resolvedSkills = resolveSkillsWithFallback(requestedSkills, effectiveCwd, effectiveCwd, agent.skillPath, agent.filePath ? path.dirname(agent.filePath) : effectiveCwd);
-    if (resolvedSkills.missing.includes("pi-subagents")) {
-        return { ok: false, code: "missing_skill", message: "The pi-subagents orchestration skill is not child-injectable.", diagnostics };
+    if (resolvedSkills.missing.includes("pi-worker")) {
+        return { ok: false, code: "missing_skill", message: "The pi-worker orchestration skill is not child-injectable.", diagnostics };
     }
     if (resolvedSkills.missing.length > 0)
         diagnostics.push({ code: "missing_skill", severity: "error", message: `Missing skills: ${resolvedSkills.missing.join(", ")}` });
@@ -304,7 +304,7 @@ export async function resolveSubagentLaunchContract(input) {
     const sessionRoot = input.sessionDir ? path.join(path.resolve(input.sessionDir), runId) : input.sessionRoot ? path.join(path.resolve(input.sessionRoot), runId) : undefined;
     const sessionDir = sessionRoot ? path.join(sessionRoot, "run-0") : undefined;
     const lifecycleAsyncDir = input.nestedRootRunId
-        ? path.join(TEMP_ROOT_DIR, "nested-subagent-runs", input.nestedRootRunId, runId)
+        ? path.join(TEMP_ROOT_DIR, "nested-worker-runs", input.nestedRootRunId, runId)
         : path.join(DIRS.async, runId);
     const lifecycleResultPath = input.nestedRootRunId
         ? nestedResultsPath(input.nestedRootRunId, runId)

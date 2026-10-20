@@ -1,5 +1,5 @@
-export const WAIT_TOOL_ENABLED_ENV = "PI_SUBAGENT_WAIT_TOOL_ENABLED";
-export const WAIT_TOOL_DEFAULT_TIMEOUT_MS_ENV = "PI_SUBAGENT_WAIT_TOOL_DEFAULT_TIMEOUT_MS";
+export const WAIT_TOOL_ENABLED_ENV = "PI_WORKER_WAIT_TOOL_ENABLED";
+export const WAIT_TOOL_DEFAULT_TIMEOUT_MS_ENV = "PI_WORKER_WAIT_TOOL_DEFAULT_TIMEOUT_MS";
 const TRUE_VALUES = new Set(["1", "true", "yes", "on", "enabled"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off", "disabled"]);
 function environmentValue(value) {

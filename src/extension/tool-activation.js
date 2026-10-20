@@ -4,7 +4,7 @@ import { registerPinnedTool } from "./declaration-pinning.js";
 import { listBackgroundWorkProviders } from "../api/background-work.js";
 import { CONTACT_SUPERVISOR_TOOL_NAME as SUPERVISOR_NAME, NATIVE_SUPERVISOR_TOOL_NAME as PARENT_SUPERVISOR_NAME } from "../intercom/native-supervisor-channel.js";
 const LOADER_NAME = "subagents_enable";
-const SUBAGENT_NAME = "subagent";
+const SUBAGENT_NAME = "delegate_task";
 // Declared with subagent, or once background-work providers exist (they report work only bg_wait reads).
 const WAIT_NAME = "bg_wait";
 // SUPERVISOR_NAME is declared with subagent: a fork launched through it then declares exactly this session's tools.

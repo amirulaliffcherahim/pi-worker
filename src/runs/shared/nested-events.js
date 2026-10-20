@@ -110,7 +110,7 @@ export function resolveNestedAsyncDir(rootRunId, run) {
     if (!run.asyncDir)
         return undefined;
     const resolved = path.resolve(run.asyncDir);
-    const nestedRoot = path.resolve(TEMP_ROOT_DIR, "nested-subagent-runs", rootRunId, run.id);
+    const nestedRoot = path.resolve(TEMP_ROOT_DIR, "nested-worker-runs", rootRunId, run.id);
     const relative = path.relative(nestedRoot, resolved);
     return resolved === nestedRoot || (!relative.startsWith("..") && !path.isAbsolute(relative)) ? resolved : undefined;
 }
@@ -1046,12 +1046,12 @@ export function nestedSummaryFromAsyncStatus(status, asyncDir, fallback) {
 }
 export function isTopLevelAsyncDir(asyncDir) {
     const resolved = path.resolve(asyncDir);
-    return containedPath(DIRS.async, resolved) && !containedPath(path.join(TEMP_ROOT_DIR, "nested-subagent-runs"), resolved);
+    return containedPath(DIRS.async, resolved) && !containedPath(path.join(TEMP_ROOT_DIR, "nested-worker-runs"), resolved);
 }
 export function nestedRunScope(rootRunId) {
     assertSafeId("rootRunId", rootRunId);
     return {
-        asyncDirRoot: path.join(TEMP_ROOT_DIR, "nested-subagent-runs", rootRunId),
+        asyncDirRoot: path.join(TEMP_ROOT_DIR, "nested-worker-runs", rootRunId),
         resultsDir: path.join(DIRS.results, "nested", rootRunId),
     };
 }

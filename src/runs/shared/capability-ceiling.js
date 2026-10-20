@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 export const SUBAGENT_CAPABILITY_CEILING_VERSION = 1;
-export const SUBAGENT_CAPABILITY_CEILING_REGISTRY_KEY = "pi-subagents.capability-ceiling.v1";
+export const SUBAGENT_CAPABILITY_CEILING_REGISTRY_KEY = "pi-worker.capability-ceiling.v1";
 function registry() {
     const key = Symbol.for(SUBAGENT_CAPABILITY_CEILING_REGISTRY_KEY);
     const store = globalThis;

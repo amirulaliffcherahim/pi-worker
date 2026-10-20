@@ -1,6 +1,6 @@
 import { type ThinkingLevel } from "../../shared/model-info.ts";
 import type { AsyncJobState, AsyncJobStep, HostStepFreshness, HostStepMonitorKind, HostStepNode, HostStepState, HostStepVerdict, WorkflowGraphSnapshot, WorkflowPreflightLane, WorkflowPreflight } from "../../shared/types.ts";
-export declare const ASYNC_STATUS_SNAPSHOT_KIND = "pi-subagents.async-status-snapshot";
+export declare const ASYNC_STATUS_SNAPSHOT_KIND = "pi-worker.async-status-snapshot";
 export declare const ASYNC_STATUS_SNAPSHOT_VERSION = 1;
 export type AsyncStatusSnapshotState = "queued" | "running" | "complete" | "failed" | "partial" | "paused" | "stopped" | "rejected";
 export type AsyncStatusSnapshotKind = "subagent" | "workflow" | "step";

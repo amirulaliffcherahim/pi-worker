@@ -1,6 +1,6 @@
 import type { WaitToolConfig } from "../../shared/types.ts";
-export declare const WAIT_TOOL_ENABLED_ENV = "PI_SUBAGENT_WAIT_TOOL_ENABLED";
-export declare const WAIT_TOOL_DEFAULT_TIMEOUT_MS_ENV = "PI_SUBAGENT_WAIT_TOOL_DEFAULT_TIMEOUT_MS";
+export declare const WAIT_TOOL_ENABLED_ENV = "PI_WORKER_WAIT_TOOL_ENABLED";
+export declare const WAIT_TOOL_DEFAULT_TIMEOUT_MS_ENV = "PI_WORKER_WAIT_TOOL_DEFAULT_TIMEOUT_MS";
 export interface ResolvedWaitToolConfig {
     enabled: boolean;
     defaultTimeoutMs?: number;

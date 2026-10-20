@@ -2,7 +2,7 @@ const WAIT_BUFFER = typeof SharedArrayBuffer !== "undefined" ? new SharedArrayBu
 const WAIT_VIEW = WAIT_BUFFER ? new Int32Array(WAIT_BUFFER) : undefined;
 const RETRYABLE_FILE_SYSTEM_ERROR_CODES = new Set(["EACCES", "EBUSY", "EPERM"]);
 const STORAGE_CAPACITY_ERROR_CODES = new Set(["EDQUOT", "EMFILE", "ENFILE", "ENOSPC"]);
-export const FS_RETRY_MAX_TOTAL_MS_ENV = "PI_SUBAGENT_FS_RETRY_MAX_TOTAL_MS";
+export const FS_RETRY_MAX_TOTAL_MS_ENV = "PI_WORKER_FS_RETRY_MAX_TOTAL_MS";
 const BASE_FILE_SYSTEM_RETRY_DELAYS_MS = [10, 25, 50, 100, 200, 500, 1000, 2000, 4000];
 /**
  * Clamp the retry ladder to a total sleep budget, preserving its length.

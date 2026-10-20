@@ -119,7 +119,7 @@ function readJsonObject(filePath) {
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
 }
 function machineSettingsFrom(settings, keys, filePath) {
-    const subagents = settings.subagents;
+    const subagents = settings.piWorker;
     if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
         return undefined;
     const machines = subagents.machines;

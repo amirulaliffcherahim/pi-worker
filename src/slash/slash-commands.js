@@ -183,7 +183,7 @@ function stopFallbackText(targets) {
         lines.push(`  ${target.detail}`);
         lines.push(`  ${target.actionLabel}: ${commandForTarget(target)}`);
         if (target.kind === "async")
-            lines.push(`  slash: /subagents-stop ${target.id}`);
+            lines.push(`  slash: /worker-stop ${target.id}`);
     }
     return lines.join("\n");
 }
@@ -595,13 +595,13 @@ export function registerSlashCommands(pi, state, options = {}) {
             fleetOpen = false;
         }
     };
-    pi.registerCommand("subagents", {
+    pi.registerCommand("worker", {
         description: "Administer subagents: inspect metadata and update models, thinking, or prompts",
         handler: async (args, ctx) => {
             await openSubagentsAdmin(pi, ctx, args);
         },
     });
-    pi.registerCommand("run", {
+    pi.registerCommand("worker-run", {
         description: "Run one subagent through a workflow script: /run agent[output=file] [task] [--bg] [--fork]",
         getArgumentCompletions: makeAgentCompletions(pi, state),
         handler: async (args, ctx) => {
@@ -648,19 +648,19 @@ export function registerSlashCommands(pi, state, options = {}) {
             launchCommand(ctx, options.workflowScriptsDisabled ? { ...child, async: bg } : { workflowScript: slashRunWorkflowScript("run", child), async: bg });
         },
     });
-    pi.registerCommand("subagent-cost", {
+    pi.registerCommand("worker-cost", {
         description: "Show parent and subagent child usage cost for this session",
         handler: async (_args, ctx) => {
             sendSlashText(pi, formatSubagentCostReport(collectSubagentCost(ctx, state)));
         },
     });
-    pi.registerCommand("subagents-doctor", {
+    pi.registerCommand("worker-doctor", {
         description: "Show subagent diagnostics",
         handler: async (_args, ctx) => {
             await runCommand(ctx, { action: "doctor" });
         },
     });
-    pi.registerCommand("subagents-inspect-rpc", {
+    pi.registerCommand("worker-inspect-rpc", {
         description: "Host integration bridge: answer an async child inspection request with a correlated widget payload (no model turn)",
         handler: async (args, ctx) => {
             if (ctx.mode === "tui") {
@@ -677,7 +677,7 @@ export function registerSlashCommands(pi, state, options = {}) {
             ctx.ui.setWidget(INSPECT_WIDGET_KEY, undefined);
         },
     });
-    pi.registerCommand("subagents-guide", {
+    pi.registerCommand("worker-guide", {
         description: "Show a packaged subagents guide topic",
         getArgumentCompletions: (prefix) => prefix.includes(" ") ? null : SUBAGENT_GUIDE_TOPICS
             .filter((topic) => topic.startsWith(prefix))
@@ -685,25 +685,25 @@ export function registerSlashCommands(pi, state, options = {}) {
         handler: async (args, ctx) => {
             const topic = args.trim();
             if (topic.includes(" ")) {
-                ctx.ui.notify("Usage: /subagents-guide [topic]", "error");
+                ctx.ui.notify("Usage: /worker-guide [topic]", "error");
                 return;
             }
             await runCommand(ctx, { action: "guide", ...(topic ? { topic } : {}) });
         },
     });
-    pi.registerCommand("subagents-refine", {
+    pi.registerCommand("worker-refine", {
         description: "Generate a bounded project-local refinement overlay for one subagent",
         getArgumentCompletions: makeAgentCompletions(pi, state),
         handler: async (args, ctx) => {
             const parts = args.trim().split(/\s+/).filter(Boolean);
             if (parts.length !== 1) {
-                ctx.ui.notify("Usage: /subagents-refine <agent>", "error");
+                ctx.ui.notify("Usage: /worker-refine <agent>", "error");
                 return;
             }
             await runCommand(ctx, { action: "refine", agent: parts[0] });
         },
     });
-    pi.registerCommand("subagents-fleet", {
+    pi.registerCommand("worker-fleet", {
         description: "Open the live subagent fleet inspector",
         handler: async (_args, ctx) => showFleet(ctx),
     });
@@ -722,7 +722,7 @@ export function registerSlashCommands(pi, state, options = {}) {
             return;
         }
         if (control.mode !== "single") {
-            ctx.ui.notify("/subagents-detach currently supports single-subagent runs only.", "error");
+            ctx.ui.notify("/worker-detach currently supports single-subagent runs only.", "error");
             return;
         }
         if (!control.detach?.()) {
@@ -731,7 +731,7 @@ export function registerSlashCommands(pi, state, options = {}) {
         }
         sendSlashText(pi, `Detached foreground run ${control.runId} without terminating its child. Use subagent({ action: "status", id: ${JSON.stringify(control.runId)} }) or bg_wait({ id: ${JSON.stringify(control.runId)} }) to recover the eventual result. This does not daemonize the process or guarantee survival across Pi reload/restart.`);
     };
-    pi.registerCommand("subagents-detach", {
+    pi.registerCommand("worker-detach", {
         description: "Detach the active foreground single-subagent run without terminating it",
         handler: async (args, ctx) => detachForegroundRun(args, ctx),
     });
@@ -741,12 +741,12 @@ export function registerSlashCommands(pi, state, options = {}) {
             handler: async (ctx) => detachForegroundRun("", ctx),
         });
     }
-    pi.registerCommand("subagents-stop", {
-        description: "Stop a current-session async subagent run, or one child of it with /subagents-stop <run-id> <child-id>",
+    pi.registerCommand("worker-stop", {
+        description: "Stop a current-session async subagent run, or one child of it with /worker-stop <run-id> <child-id>",
         handler: async (args, ctx) => {
             const [id, childId, ...extra] = args.trim().split(/\s+/).filter(Boolean);
             if (extra.length > 0) {
-                sendSlashText(pi, "Usage: /subagents-stop [run-id] [child-id]");
+                sendSlashText(pi, "Usage: /worker-stop [run-id] [child-id]");
                 return;
             }
             if (id) {
@@ -785,11 +785,11 @@ export function registerSlashCommands(pi, state, options = {}) {
             await runCommand(ctx, { action: "stop", id: result.target.id });
         },
     });
-    pi.registerCommand("subagents-steer", {
+    pi.registerCommand("worker-steer", {
         description: "Steer a live async subagent run with a message, or one child of it with --child <child-id>",
         handler: async (args, ctx) => {
             const tokens = args.trim().split(/\s+/).filter(Boolean);
-            const usage = "Usage: /subagents-steer <run-id> [--child <child-id>] <message>";
+            const usage = "Usage: /worker-steer <run-id> [--child <child-id>] <message>";
             const [id, ...rest] = tokens;
             if (!id || id.startsWith("--")) {
                 sendSlashText(pi, usage);
@@ -857,7 +857,7 @@ export function registerSlashCommands(pi, state, options = {}) {
             launchCommand(ctx, params);
         },
     });
-    pi.registerCommand("subagents-models", {
+    pi.registerCommand("worker-models", {
         description: "Show model mappings for discovered subagents",
         getArgumentCompletions: makeAgentCompletions(pi, state),
         handler: async (args, ctx) => {
@@ -868,13 +868,13 @@ export function registerSlashCommands(pi, state, options = {}) {
             }
             const parts = trimmed.split(/\s+/).filter(Boolean);
             if (parts.length !== 1) {
-                ctx.ui.notify("Usage: /subagents-models [agent-name]", "error");
+                ctx.ui.notify("Usage: /worker-models [agent-name]", "error");
                 return;
             }
             await runCommand(ctx, { action: "models", agent: parts[0] });
         },
     });
-    pi.registerCommand("subagents-profiles", {
+    pi.registerCommand("worker-profiles", {
         description: "List saved subagent profiles",
         handler: async (_args, _ctx) => {
             const profiles = listSubagentProfiles();
@@ -885,7 +885,7 @@ export function registerSlashCommands(pi, state, options = {}) {
             sendSlashText(pi, `Subagent profiles\n\n${profiles.join("\n")}`);
         },
     });
-    pi.registerCommand("subagents-load-profile", {
+    pi.registerCommand("worker-load-profile", {
         description: "Load a subagent profile into ~/.pi/agent/settings.json",
         getArgumentCompletions: (prefix) => {
             if (prefix.includes(" "))
@@ -895,7 +895,7 @@ export function registerSlashCommands(pi, state, options = {}) {
                 .map((name) => ({ value: name, label: name }));
         },
         handler: async (args, ctx) => {
-            const parsed = parseSingleRequiredArg(args, "Usage: /subagents-load-profile <name>");
+            const parsed = parseSingleRequiredArg(args, "Usage: /worker-load-profile <name>");
             if (parsed.ok === false) {
                 ctx.ui.notify(parsed.message, "error");
                 return;
@@ -938,14 +938,14 @@ export function registerSlashCommands(pi, state, options = {}) {
             }
         },
     });
-    pi.registerCommand("subagents-refresh-provider-models", {
+    pi.registerCommand("worker-refresh-provider-models", {
         description: "Refresh the cached model catalog for one provider",
         getArgumentCompletions: makeProviderCompletions(state),
         handler: async (args, ctx) => {
             const trimmed = args.trim();
             const force = /(?:^|\s)--force$/.test(trimmed) || /(?:^|\s)force$/.test(trimmed);
             const withoutForce = trimmed.replace(/(?:^|\s)(?:--force|force)$/, "").trim();
-            const parsed = parseSingleRequiredArg(withoutForce, "Usage: /subagents-refresh-provider-models <provider> [--force]");
+            const parsed = parseSingleRequiredArg(withoutForce, "Usage: /worker-refresh-provider-models <provider> [--force]");
             if (parsed.ok === false) {
                 ctx.ui.notify(parsed.message, "error");
                 return;
@@ -972,11 +972,11 @@ export function registerSlashCommands(pi, state, options = {}) {
             }
         },
     });
-    pi.registerCommand("subagents-generate-profiles", {
+    pi.registerCommand("worker-generate-profiles", {
         description: "Generate <provider>.quota and <provider>.quality subagent profiles",
         getArgumentCompletions: makeProviderCompletions(state),
         handler: async (args, ctx) => {
-            const parsed = parseSingleRequiredArg(args, "Usage: /subagents-generate-profiles <provider>");
+            const parsed = parseSingleRequiredArg(args, "Usage: /worker-generate-profiles <provider>");
             if (parsed.ok === false) {
                 ctx.ui.notify(parsed.message, "error");
                 return;
@@ -1011,7 +1011,7 @@ export function registerSlashCommands(pi, state, options = {}) {
             }
         },
     });
-    pi.registerCommand("subagents-check-profile", {
+    pi.registerCommand("worker-check-profile", {
         description: "Check whether a saved profile still points to usable models",
         getArgumentCompletions: (prefix) => {
             if (prefix.includes(" "))
@@ -1021,7 +1021,7 @@ export function registerSlashCommands(pi, state, options = {}) {
                 .map((name) => ({ value: name, label: name }));
         },
         handler: async (args, ctx) => {
-            const parsed = parseSingleRequiredArg(args, "Usage: /subagents-check-profile <name>");
+            const parsed = parseSingleRequiredArg(args, "Usage: /worker-check-profile <name>");
             if (parsed.ok === false) {
                 ctx.ui.notify(parsed.message, "error");
                 return;

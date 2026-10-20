@@ -1,5 +1,5 @@
 export declare const EXTERNAL_JOB_PROVIDER_PROTOCOL_VERSION = 1;
-export declare const EXTERNAL_JOB_PROVIDER_REGISTRY_KEY = "pi-subagents.external-job-providers.v1";
+export declare const EXTERNAL_JOB_PROVIDER_REGISTRY_KEY = "pi-worker.external-job-providers.v1";
 export type ExternalJobState = "queued" | "running" | "completed" | "failed" | "stopped" | "blocked";
 export type ExternalJobOperation = "start" | "follow-up" | "status" | "result" | "reattach";
 export type ExternalJobOptions = Record<string, unknown>;

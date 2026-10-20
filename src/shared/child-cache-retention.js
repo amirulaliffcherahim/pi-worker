@@ -10,7 +10,7 @@
  * before this setting existed.
  */
 export function childCacheRetention(env = process.env) {
-    return env.PI_SUBAGENT_CACHE_RETENTION || undefined;
+    return env.PI_WORKER_CACHE_RETENTION || undefined;
 }
 /**
  * Launch-environment form for spawned children. Empty when unset, so the child

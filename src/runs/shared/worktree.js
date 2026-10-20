@@ -398,7 +398,7 @@ export function buildWorktreeNaming(input) {
 function hasConfiguredWorktreeBaseDir(baseDir) {
     return baseDir !== undefined
         ? true
-        : (process.env.PI_SUBAGENTS_WORKTREE_DIR?.trim().length ?? 0) > 0;
+        : (process.env.PI_WORKER_WORKTREE_DIR?.trim().length ?? 0) > 0;
 }
 function isInsidePiExtensionsDirectory(targetPath) {
     const extensionsDir = normalizeComparableCwd(path.join(getAgentDir(), "extensions"));
@@ -449,7 +449,7 @@ export function resolveWorktreeProvider(requested, baseDir) {
         return "native";
     if (hasConfiguredWorktreeBaseDir(baseDir)) {
         if (selection === "worktrunk")
-            throw new Error("worktreeProvider='worktrunk' cannot be combined with worktreeBaseDir or PI_SUBAGENTS_WORKTREE_DIR");
+            throw new Error("worktreeProvider='worktrunk' cannot be combined with worktreeBaseDir or PI_WORKER_WORKTREE_DIR");
         return "native";
     }
     const capability = probeWorktrunk();
@@ -467,7 +467,7 @@ async function resolveSetupProvider(tx, requested, baseDir, repoRoot) {
         return "native";
     if (hasConfiguredWorktreeBaseDir(baseDir)) {
         if (selection === "worktrunk")
-            throw new Error("worktreeProvider='worktrunk' cannot be combined with worktreeBaseDir or PI_SUBAGENTS_WORKTREE_DIR");
+            throw new Error("worktreeProvider='worktrunk' cannot be combined with worktreeBaseDir or PI_WORKER_WORKTREE_DIR");
         return "native";
     }
     if (selection === "auto" && isInsidePiExtensionsDirectory(repoRoot))
@@ -502,12 +502,12 @@ export function shouldDeferWorktreeCwd(requested, baseDir) {
 }
 /**
  * Resolves the dedicated worktree root: the configured base directory or
- * PI_SUBAGENTS_WORKTREE_DIR when set, otherwise a `worktrees` folder sibling
+ * PI_WORKER_WORKTREE_DIR when set, otherwise a `worktrees` folder sibling
  * to the repository. Managed leaves always nest one level deeper under the
  * project folder (`basename(repoRoot)`).
  */
 function resolveWorktreeDedicatedRoot(configuredBaseDir, repoRoot, relocateExtensionRepo = true) {
-    const rawBaseDir = configuredBaseDir ?? process.env.PI_SUBAGENTS_WORKTREE_DIR;
+    const rawBaseDir = configuredBaseDir ?? process.env.PI_WORKER_WORKTREE_DIR;
     let expanded;
     if (rawBaseDir === undefined || (configuredBaseDir === undefined && !rawBaseDir.trim())) {
         expanded = relocateExtensionRepo && isInsidePiExtensionsDirectory(repoRoot)

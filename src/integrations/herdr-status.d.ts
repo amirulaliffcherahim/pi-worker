@@ -1,4 +1,4 @@
-export declare const HERDR_FOREGROUND_CONTROL_CHANGED_EVENT = "pi-subagents:herdr:foreground-control-changed";
+export declare const HERDR_FOREGROUND_CONTROL_CHANGED_EVENT = "pi-worker:herdr:foreground-control-changed";
 export interface HerdrStatusBridgeEvents {
     on(event: string, handler: (data: unknown) => void): (() => void) | void;
     emit(event: string, data: unknown): void;

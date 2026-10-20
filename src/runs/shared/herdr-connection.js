@@ -7,7 +7,7 @@ const MAX_DISCOVERY_BYTES = 256 * 1024;
 const MAX_RPC_BYTES = 4 * 1024 * 1024;
 const SUBSCRIPTION_ACK_TIMEOUT_MS = 15_000;
 export const HERDR_REMOTE_PATH = "$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
-export const HERDR_SSH_BASE = ["-T", "-o", "BatchMode=yes", "-o", "NumberOfPasswordPrompts=0", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=10", "-o", "ConnectionAttempts=1", "-o", "ForwardAgent=no", "-o", "ExitOnForwardFailure=yes", "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4", "-o", "SendEnv=-*", "-o", "SetEnv=PI_SUBAGENTS_SSH_GUARD="];
+export const HERDR_SSH_BASE = ["-T", "-o", "BatchMode=yes", "-o", "NumberOfPasswordPrompts=0", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=10", "-o", "ConnectionAttempts=1", "-o", "ForwardAgent=no", "-o", "ExitOnForwardFailure=yes", "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4", "-o", "SendEnv=-*", "-o", "SetEnv=PI_WORKER_SSH_GUARD="];
 export function hardenedSshEnv(source = process.env) { return { PATH: process.platform === "win32" ? source.PATH : "/usr/bin:/bin:/usr/sbin:/sbin", ...(source.SystemRoot ? { SystemRoot: source.SystemRoot } : {}), ...(source.WINDIR ? { WINDIR: source.WINDIR } : {}) }; }
 export function herdrSshArgs(source = process.env) { return [...HERDR_SSH_BASE, ...(source.SSH_AUTH_SOCK ? ["-o", `IdentityAgent=${source.SSH_AUTH_SOCK}`] : [])]; }
 export class HerdrRpcError extends Error {
@@ -230,7 +230,7 @@ export async function connectHerdrMachine(machine, options = {}) {
     if (process.platform === "win32")
         throw new Error("Pane-native Herdr placement requires OpenSSH StreamLocal forwarding and is not supported on Windows.");
     const endpoint = await discoverHerdrEndpoint(machine, options);
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-subagents-herdr-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-worker-herdr-"));
     fs.chmodSync(dir, 0o700);
     const children = new Set();
     const forward = async (remotePath, name) => {

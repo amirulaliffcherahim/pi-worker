@@ -23,7 +23,7 @@ export function readReplyWorkflowScript(sessionManager, toolCallId) {
     return { error: "workflow: true only works from a model subagent tool call whose assistant message contains the ```js workflow block; other callers must pass a script path such as workflow: \"./script.js\"." };
 }
 function scriptFromReply(content) {
-    const replyCalls = content.filter((block) => block.type === "toolCall" && block.name === "subagent"
+    const replyCalls = content.filter((block) => block.type === "toolCall" && block.name === "delegate_task"
         && (block.arguments?.workflow === true || block.arguments?.workflow === "true")).length;
     if (replyCalls > 1)
         return { error: `This reply has ${replyCalls} subagent calls with workflow: true; a reply can carry only one. Pass other scripts as workflow file paths.` };

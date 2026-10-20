@@ -1,5 +1,5 @@
 export const EXTERNAL_JOB_PROVIDER_PROTOCOL_VERSION = 1;
-export const EXTERNAL_JOB_PROVIDER_REGISTRY_KEY = "pi-subagents.external-job-providers.v1";
+export const EXTERNAL_JOB_PROVIDER_REGISTRY_KEY = "pi-worker.external-job-providers.v1";
 const MAX_PROVIDER_NAME_LENGTH = 128;
 const MAX_PROVIDERS = 100;
 const MAX_JOB_ID_LENGTH = 256;

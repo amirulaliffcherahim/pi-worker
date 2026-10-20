@@ -1,4 +1,4 @@
-export const INSPECTOR_REGISTER_EVENT = "pi-subagents:inspector-register:v1";
+export const INSPECTOR_REGISTER_EVENT = "pi-worker:inspector-register:v1";
 /** Register with the installed owner, even when each extension has its own module root. */
 export function registerInspector(pi, plugin) {
     const request = { version: 1, plugin };

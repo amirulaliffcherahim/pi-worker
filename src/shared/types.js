@@ -103,12 +103,12 @@ export function resolveTempScopeId(options) {
 }
 const MAX_PARALLEL = 8;
 const MAX_CONCURRENCY = 4;
-const configuredTempRoot = process.env.PI_SUBAGENTS_TEMP_ROOT?.trim();
+const configuredTempRoot = process.env.PI_WORKER_TEMP_ROOT?.trim();
 export const TEMP_ROOT_DIR = configuredTempRoot
     ? path.resolve(configuredTempRoot)
-    : path.join(os.tmpdir(), `pi-subagents-${resolveTempScopeId()}`);
-export const RESULTS_DIR = path.join(TEMP_ROOT_DIR, "async-subagent-results");
-export const ASYNC_DIR = path.join(TEMP_ROOT_DIR, "async-subagent-runs");
+    : path.join(os.tmpdir(), `pi-worker-${resolveTempScopeId()}`);
+export const RESULTS_DIR = path.join(TEMP_ROOT_DIR, "async-worker-results");
+export const ASYNC_DIR = path.join(TEMP_ROOT_DIR, "async-worker-runs");
 export const CHAIN_RUNS_DIR = path.join(TEMP_ROOT_DIR, "chain-runs");
 export const TEMP_ARTIFACTS_DIR = path.join(TEMP_ROOT_DIR, "artifacts");
 export const DIRS = {
@@ -176,7 +176,7 @@ export function normalizeMaxSubagentDepth(value) {
     return normalizeNonNegativeInteger(value);
 }
 /** Operator override for the top-level parent; children inherit their limit through their runtime config. */
-const SUBAGENT_MAX_DEPTH_ENV = "PI_SUBAGENT_MAX_DEPTH";
+const SUBAGENT_MAX_DEPTH_ENV = "PI_WORKER_MAX_DEPTH";
 export function resolveCurrentMaxSubagentDepth(configMaxDepth, runtime) {
     return normalizeMaxSubagentDepth(runtime ? runtime.maxDepth : process.env[SUBAGENT_MAX_DEPTH_ENV])
         ?? normalizeMaxSubagentDepth(configMaxDepth)
@@ -209,7 +209,7 @@ export function normalizeMaxSubagentSpawnsPerSession(value) {
     return normalizeNonNegativeInteger(value);
 }
 export function resolveMaxSubagentSpawnsPerSession(configMaxSpawns) {
-    const envMaxSpawns = normalizeMaxSubagentSpawnsPerSession(process.env.PI_SUBAGENT_MAX_SPAWNS_PER_SESSION);
+    const envMaxSpawns = normalizeMaxSubagentSpawnsPerSession(process.env.PI_WORKER_MAX_SPAWNS_PER_SESSION);
     if (envMaxSpawns !== undefined)
         return envMaxSpawns === 0 ? undefined : envMaxSpawns;
     const configuredMaxSpawns = normalizeMaxSubagentSpawnsPerSession(configMaxSpawns);
@@ -221,7 +221,7 @@ export function normalizeMaxSubagentSpawnsPerRun(value) {
     return normalized !== undefined && normalized > 0 ? normalized : undefined;
 }
 export function resolveMaxSubagentSpawnsPerRun(configMaxSpawns) {
-    return normalizeMaxSubagentSpawnsPerRun(process.env.PI_SUBAGENT_MAX_SPAWNS_PER_RUN)
+    return normalizeMaxSubagentSpawnsPerRun(process.env.PI_WORKER_MAX_SPAWNS_PER_RUN)
         ?? normalizeMaxSubagentSpawnsPerRun(configMaxSpawns)
         ?? DEFAULT_MAX_SUBAGENT_SPAWNS_PER_RUN;
 }

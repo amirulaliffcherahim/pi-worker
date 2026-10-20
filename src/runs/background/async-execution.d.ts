@@ -101,7 +101,7 @@ interface AsyncChainParams {
     callToolTimeoutMs?: number;
     /** Global config.toolTimeoutMs (third precedence, after agent frontmatter). */
     configToolTimeoutMs?: number;
-    /** PI_SUBAGENT_TOOL_TIMEOUT_MS override (lowest precedence). */
+    /** PI_WORKER_TOOL_TIMEOUT_MS override (lowest precedence). */
     toolTimeoutMsEnv?: string | undefined;
     /** Global cap on simultaneously-running subagent tasks within the async run. */
     globalConcurrencyLimit?: number;
@@ -181,7 +181,7 @@ interface AsyncSingleParams {
     configToolBudget?: ResolvedToolBudget;
     /** Global config.toolTimeoutMs (third precedence, after agent frontmatter). */
     configToolTimeoutMs?: number;
-    /** PI_SUBAGENT_TOOL_TIMEOUT_MS override (lowest precedence). */
+    /** PI_WORKER_TOOL_TIMEOUT_MS override (lowest precedence). */
     toolTimeoutMsEnv?: string | undefined;
     allowZeroToolBudget?: boolean;
     capabilityCeiling?: ResolvedSubagentCapabilityCeiling;
@@ -249,7 +249,7 @@ export interface AsyncRunnerStepBuildParams {
     callToolTimeoutMs?: number;
     /** Global config.toolTimeoutMs (third precedence, after agent frontmatter). */
     configToolTimeoutMs?: number;
-    /** PI_SUBAGENT_TOOL_TIMEOUT_MS override (lowest precedence). */
+    /** PI_WORKER_TOOL_TIMEOUT_MS override (lowest precedence). */
     toolTimeoutMsEnv?: string | undefined;
     capabilityCeiling?: ResolvedSubagentCapabilityCeiling;
     /** Retained snapshot from the launch being continued; takes precedence over the live registry, as in single launches. */

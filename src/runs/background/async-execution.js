@@ -508,7 +508,7 @@ function spawnRunner(cfg, suffix, cwd, initialStatus, initialStatusPath, launchP
             PI_PACKAGE_DIR: binaryHost ? process.env.PI_PACKAGE_DIR : piPackageRoot,
             [JITI_ALIAS_ENV]: binaryHost ? undefined : JSON.stringify(hostPeerAliases.aliases),
             PI_ASYNC_NATIVE_RUNNER: !binaryHost && (runnerIsJavaScript || nativeRunnerSupported) ? "1" : "0",
-            PI_SUBAGENT_RUNNER_CONFIG: binaryHost ? cfgPath : undefined,
+            PI_WORKER_RUNNER_CONFIG: binaryHost ? cfgPath : undefined,
         };
         if (launchParentSessionId === undefined)
             delete runnerEnv[SUBAGENT_PARENT_SESSION_ENV];
@@ -1233,7 +1233,7 @@ export function executeAsyncChain(id, params) {
     const inheritedNestedRoute = inheritedNestedRouteOf(ctx.childRuntime);
     const nestedAddress = inheritedNestedRoute ? inheritedNestedParentAddressOf(ctx.childRuntime) : undefined;
     const asyncDir = inheritedNestedRoute
-        ? path.join(TEMP_ROOT_DIR, "nested-subagent-runs", inheritedNestedRoute.rootRunId, id)
+        ? path.join(TEMP_ROOT_DIR, "nested-worker-runs", inheritedNestedRoute.rootRunId, id)
         : path.join(DIRS.async, id);
     let runFanoutBudget;
     try {
@@ -1652,7 +1652,7 @@ export function executeAsyncSingle(id, params) {
     const inheritedNestedRoute = inheritedNestedRouteOf(ctx.childRuntime);
     const nestedAddress = inheritedNestedRoute ? inheritedNestedParentAddressOf(ctx.childRuntime) : undefined;
     const asyncDir = inheritedNestedRoute
-        ? path.join(TEMP_ROOT_DIR, "nested-subagent-runs", inheritedNestedRoute.rootRunId, id)
+        ? path.join(TEMP_ROOT_DIR, "nested-worker-runs", inheritedNestedRoute.rootRunId, id)
         : path.join(DIRS.async, id);
     let runFanoutBudget;
     try {

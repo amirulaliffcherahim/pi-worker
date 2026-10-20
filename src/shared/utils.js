@@ -7,7 +7,7 @@ import { validateAsyncStatusLaneMetadata } from "../runs/shared/lane-metadata.js
 import { ERROR_REPLY_TEXT_SEPARATOR } from "../runs/shared/model-resolution.js";
 const DEFAULT_CONFIG_DIR_NAME = ".pi";
 const PI_CODING_AGENT_PACKAGE_NAME = "@earendil-works/pi-coding-agent";
-export const PI_CODING_AGENT_PACKAGE_ROOT_ENV = "PI_SUBAGENTS_PI_CODING_AGENT_PACKAGE_ROOT";
+export const PI_CODING_AGENT_PACKAGE_ROOT_ENV = "PI_WORKER_PI_CODING_AGENT_PACKAGE_ROOT";
 export const PROMPT_REDACTED = "[prompt redacted]";
 export const SUBAGENT_STOPPED_MESSAGE = "Subagent stopped.";
 export const SUBAGENT_TIMED_OUT_MESSAGE = "Subagent timed out.";

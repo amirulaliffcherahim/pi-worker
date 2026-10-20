@@ -1,5 +1,5 @@
 export declare const SUBAGENT_CAPABILITY_CEILING_VERSION: 1;
-export declare const SUBAGENT_CAPABILITY_CEILING_REGISTRY_KEY = "pi-subagents.capability-ceiling.v1";
+export declare const SUBAGENT_CAPABILITY_CEILING_REGISTRY_KEY = "pi-worker.capability-ceiling.v1";
 export type SubagentCapabilityCeiling = {
     allowedTools: readonly string[];
     allowedAgents?: readonly string[];

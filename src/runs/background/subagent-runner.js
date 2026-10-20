@@ -109,7 +109,7 @@ function persistStepArtifacts(input) {
 }
 const ASYNC_INTERRUPT_SIGNAL = process.platform === "win32" ? "SIGBREAK" : "SIGUSR2";
 const DEFAULT_MAX_ASYNC_EVENTS_BYTES = 50 * 1024 * 1024;
-const ASYNC_EVENTS_MAX_BYTES_ENV = "PI_SUBAGENT_ASYNC_EVENTS_MAX_BYTES";
+const ASYNC_EVENTS_MAX_BYTES_ENV = "PI_WORKER_ASYNC_EVENTS_MAX_BYTES";
 const TRUNCATED_EVENT_TYPE = "subagent.events.truncated";
 const TRUNCATION_MARKER_RESERVE_BYTES = 512;
 const asyncEventLogStates = new Map();

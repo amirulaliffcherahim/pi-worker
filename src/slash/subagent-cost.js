@@ -95,7 +95,7 @@ function detailsFromSessionEntry(entry) {
     if (record.type !== "message" || !record.message || typeof record.message !== "object")
         return undefined;
     const message = record.message;
-    if (message.role !== "toolResult" || (message.toolName !== "subagent" && message.toolName !== "bg_wait"))
+    if (message.role !== "toolResult" || (message.toolName !== "delegate_task" && message.toolName !== "bg_wait"))
         return undefined;
     return isSubagentDetails(message.details) ? message.details : undefined;
 }

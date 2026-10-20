@@ -528,7 +528,7 @@ async function waitForSessionDetachedForegroundRuns(runs, signal, deps, startedA
  */
 export async function waitForSubagents(params, signal, deps) {
     if (deps.enabled === false) {
-        return result("bg_wait is disabled by config.waitTool or PI_SUBAGENT_WAIT_TOOL_ENABLED; returning immediately without blocking background work. Active work keeps going, and you can inspect subagents with subagent({ action: \"status\" }) or rely on completion notifications.");
+        return result("bg_wait is disabled by config.waitTool or PI_WORKER_WAIT_TOOL_ENABLED; returning immediately without blocking background work. Active work keeps going, and you can inspect subagents with subagent({ action: \"status\" }) or rely on completion notifications.");
     }
     if (!deps.state.currentSessionId) {
         return result("bg_wait requires an active session identity to scope background work safely.", true);

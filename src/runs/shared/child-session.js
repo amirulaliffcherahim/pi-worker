@@ -197,7 +197,7 @@ function selectedBuiltinMcpExtension(pi, selections, readinessTool) {
                     throw new Error(`Selected built-in MCP tools (${selections.map(({ name }) => name).join(", ")}) need Pi 0.99.2 or later; earlier built-in MCP cannot report when its servers have connected.`);
                 // Run only MCP's readiness hook, not a tool or script. Pi 1.0 recognizes its
                 // own codemode schema; newer hosts use that tool's reachesTools metadata.
-                const event = { type: "tool_call", toolCallId: "pi-subagents:mcp-startup", toolName: "codemode", input: { code: selections.map(({ name }) => `tools.${name}`).join(";\n") } };
+                const event = { type: "tool_call", toolCallId: "pi-worker:mcp-startup", toolName: "codemode", input: { code: selections.map(({ name }) => `tools.${name}`).join(";\n") } };
                 const context = new Proxy(ctx, { get: (target, prop, receiver) => prop === "signal" ? signal : Reflect.get(target, prop, receiver) });
                 checkingStartup = true;
                 try {
@@ -406,7 +406,7 @@ export function createDefaultChildSessionFactory(options = {}) {
                 noThemes: true,
                 noContextFiles: launch.noContextFiles,
                 additionalExtensionPaths: builtinMcp ? [...launch.extensionPaths, "builtin:mcp"] : launch.extensionPaths,
-                extensionFactories: [...launch.hooks, ...(commands ? [{ name: "pi-subagents:commands", factory: (api) => {
+                extensionFactories: [...launch.hooks, ...(commands ? [{ name: "pi-worker:commands", factory: (api) => {
                                 api.registerTool(commands.wrap(pi.createBashTool(launch.cwd, { commandPrefix: settingsManager.getShellCommandPrefix(), shellPath: settingsManager.getShellPath() })));
                                 api.registerTool(commands.tool());
                             } }] : []), ...codemode, ...(builtinMcp ? [builtinMcp] : [])],

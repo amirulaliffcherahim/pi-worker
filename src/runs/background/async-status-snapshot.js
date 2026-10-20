@@ -1,7 +1,7 @@
 import { ownerSessionIds } from "../shared/run-ownership.js";
 import { projectAsyncStatusSnapshot as buildAsyncStatusSnapshot, } from "../shared/async-status-projection.js";
 export { ASYNC_STATUS_SNAPSHOT_KIND, ASYNC_STATUS_SNAPSHOT_VERSION, } from "../shared/async-status-projection.js";
-export const ASYNC_STATUS_SNAPSHOT_WIDGET_PREFIX = "PI_SUBAGENT_ASYNC_JSON:";
+export const ASYNC_STATUS_SNAPSHOT_WIDGET_PREFIX = "PI_WORKER_ASYNC_JSON:";
 export { buildAsyncStatusSnapshot };
 export function asyncStatusSnapshotJobsForState(state, sessionId) {
     if (!state || !sessionId || state.currentSessionId !== sessionId)

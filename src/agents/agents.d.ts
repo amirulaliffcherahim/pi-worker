@@ -300,7 +300,7 @@ export interface AgentDefinitionInspectionFs {
  * preventing a partial traversal from being reported as empty or complete.
  */
 export declare function inspectAgentDefinitionDirectory(dir: string, operations?: AgentDefinitionInspectionFs, isExcluded?: (filePath: string) => boolean): AgentDefinitionInspection;
-export declare const EXTRA_AGENT_DIRS_ENV = "PI_SUBAGENT_EXTRA_AGENT_DIRS";
+export declare const EXTRA_AGENT_DIRS_ENV = "PI_WORKER_EXTRA_AGENT_DIRS";
 export interface AgentDiscoveryAllResult {
     builtin: AgentConfig[];
     package: AgentConfig[];

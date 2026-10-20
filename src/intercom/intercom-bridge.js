@@ -8,7 +8,7 @@ function defaultAgentDir() {
     return getAgentDir();
 }
 function defaultSubagentConfigDir(agentDir = defaultAgentDir()) {
-    return path.join(agentDir, "extensions", "subagent");
+    return path.join(agentDir, "extensions", "pi-worker");
 }
 const DEFAULT_INTERCOM_TARGET_PREFIX = "subagent-chat";
 export const PI_INTERCOM_SESSION_ID_ENV = "PI_INTERCOM_SESSION_ID";

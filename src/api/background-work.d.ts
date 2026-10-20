@@ -1,5 +1,5 @@
 export declare const BACKGROUND_WORK_PROTOCOL_VERSION = 1;
-export declare const BACKGROUND_WORK_REGISTRY_KEY = "pi-subagents.background-work.v1";
+export declare const BACKGROUND_WORK_REGISTRY_KEY = "pi-worker.background-work.v1";
 export interface BackgroundWorkItem {
     id: string;
     sessionId: string;

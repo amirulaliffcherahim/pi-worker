@@ -134,7 +134,7 @@ function readOnlyAgentMessage(agent, field) {
         return `Cannot update '${agent.name}' ${field} because that field is owned by its read-only package definition.`;
     }
     return isReadOnlyExtraAgent(agent)
-        ? `Cannot update '${agent.name}' because its definition in PI_SUBAGENT_EXTRA_AGENT_DIRS is read-only.`
+        ? `Cannot update '${agent.name}' because its definition in PI_WORKER_EXTRA_AGENT_DIRS is read-only.`
         : undefined;
 }
 async function selectAgent(pi, ctx, args) {

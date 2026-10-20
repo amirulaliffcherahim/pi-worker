@@ -280,10 +280,10 @@ export async function discoverBridgeManifest(machine, runId, runtimeDir, options
     }
     throw new Error("The remote Pi did not expose the packaged pi-subagents bridge. Install/configure the same package version as an ambient Pi extension on the saved machine.");
 }
-export async function createRemoteRuntimeDir(machine, runId, options = {}) { const result = await runHerdrRemoteCommandAsync(machine, remoteShellCommand("umask 077; mktemp -d \"${TMPDIR:-/tmp}/pi-subagents-herdr-$1-XXXXXXXX\"", [runId]), { ...options, timeout: 10_000, maxBuffer: 4096 }); if (result.error)
+export async function createRemoteRuntimeDir(machine, runId, options = {}) { const result = await runHerdrRemoteCommandAsync(machine, remoteShellCommand("umask 077; mktemp -d \"${TMPDIR:-/tmp}/pi-worker-herdr-$1-XXXXXXXX\"", [runId]), { ...options, timeout: 10_000, maxBuffer: 4096 }); if (result.error)
     throw new Error(`Could not provision a run-private remote bridge runtime directory: ${result.error.message}`, { cause: result.error }); const value = result.stdout.trim(); if (result.status !== 0 || !path.posix.isAbsolute(value) || value.includes("\n"))
     throw new Error("Could not provision a run-private remote bridge runtime directory."); return value; }
-export function removeRemoteRuntimeDir(machine, runtimeDir, options = {}) { const result = runHerdrRemoteCommand(machine, remoteShellCommand("p=$1; case \"${p##*/}\" in pi-subagents-herdr-*) test -d \"$p\" && test ! -L \"$p\" && rm -rf -- \"$p\";; *) exit 64;; esac", [runtimeDir]), { ...options, timeout: 10_000, maxBuffer: 4096 }); if (result.status !== 0 || result.stdout)
+export function removeRemoteRuntimeDir(machine, runtimeDir, options = {}) { const result = runHerdrRemoteCommand(machine, remoteShellCommand("p=$1; case \"${p##*/}\" in pi-worker-herdr-*) test -d \"$p\" && test ! -L \"$p\" && rm -rf -- \"$p\";; *) exit 64;; esac", [runtimeDir]), { ...options, timeout: 10_000, maxBuffer: 4096 }); if (result.status !== 0 || result.stdout)
     throw new Error(`Could not remove the exact owned remote runtime directory: ${String(result.stderr).slice(0, 512)}`); }
 /** The single private owner for allocation shared by every pane-native backend projection. */
 export class HerdrPlacedRunOwner {

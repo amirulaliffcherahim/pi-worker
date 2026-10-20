@@ -9,7 +9,7 @@ export const MAX_ARGS_ITEMS = 64;
 export const MAX_ARGS_DEPTH = 8;
 const MAX_STRING_BYTES = 16 * 1024;
 function registry() {
-    const key = Symbol.for("pi-subagents.workflow-resources.v1");
+    const key = Symbol.for("pi-worker.workflow-resources.v1");
     const globalObject = globalThis;
     const existing = globalObject[key];
     if (existing === undefined) {

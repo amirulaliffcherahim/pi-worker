@@ -611,7 +611,7 @@ function readProjectRootResolution(projectRoot) {
     if (!fs.existsSync(settingsPath))
         return undefined;
     const settings = readSettingsFileStrict(settingsPath);
-    const subagents = settings.subagents;
+    const subagents = settings.piWorker;
     if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
         return undefined;
     const value = subagents.projectRootResolution;
@@ -934,7 +934,7 @@ function readSubagentSettings(filePath) {
     if (!filePath)
         return EMPTY_SUBAGENT_SETTINGS;
     const settings = readSettingsFileStrict(filePath);
-    const subagents = settings.subagents;
+    const subagents = settings.piWorker;
     if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
         return EMPTY_SUBAGENT_SETTINGS;
     const subagentsObject = subagents;
@@ -1488,15 +1488,15 @@ export function saveBuiltinAgentOverride(cwd, name, scope, override) {
         throw new Error("Project override is not available here. No project config root was found.");
     return withSettingsFileLease(filePath, () => {
         const settings = readSettingsFileStrict(filePath);
-        const subagents = settings.subagents && typeof settings.subagents === "object" && !Array.isArray(settings.subagents)
-            ? { ...settings.subagents }
+        const subagents = settings.piWorker && typeof settings.piWorker === "object" && !Array.isArray(settings.piWorker)
+            ? { ...settings.piWorker }
             : {};
         const agentOverrides = subagents.agentOverrides && typeof subagents.agentOverrides === "object" && !Array.isArray(subagents.agentOverrides)
             ? { ...subagents.agentOverrides }
             : {};
         agentOverrides[name] = cloneOverrideValue(override);
         subagents.agentOverrides = agentOverrides;
-        settings.subagents = subagents;
+        settings.piWorker = subagents;
         writeSettingsFile(filePath, settings);
         return filePath;
     });
@@ -1509,7 +1509,7 @@ export function removeBuiltinAgentOverride(cwd, name, scope, options) {
         return { path: filePath, removed: false, machinePreserved: false };
     return withSettingsFileLease(filePath, () => {
         const settings = readSettingsFileStrict(filePath);
-        const subagents = settings.subagents;
+        const subagents = settings.piWorker;
         if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
             return { path: filePath, removed: false, machinePreserved: false };
         const nextSubagents = { ...subagents };
@@ -1531,9 +1531,9 @@ export function removeBuiltinAgentOverride(cwd, name, scope, options) {
         else
             delete nextSubagents.agentOverrides;
         if (Object.keys(nextSubagents).length > 0)
-            settings.subagents = nextSubagents;
+            settings.piWorker = nextSubagents;
         else
-            delete settings.subagents;
+            delete settings.piWorker;
         writeSettingsFile(filePath, settings);
         return { path: filePath, removed: true, machinePreserved: options?.preserveMachine === true && machine !== undefined };
     });
@@ -1544,8 +1544,8 @@ export function mergeBuiltinAgentOverride(cwd, name, scope, fields) {
         throw new Error("Project override is not available here. No project config root was found.");
     return withSettingsFileLease(filePath, () => {
         const settings = readSettingsFileStrict(filePath);
-        const subagents = settings.subagents && typeof settings.subagents === "object" && !Array.isArray(settings.subagents)
-            ? { ...settings.subagents }
+        const subagents = settings.piWorker && typeof settings.piWorker === "object" && !Array.isArray(settings.piWorker)
+            ? { ...settings.piWorker }
             : {};
         const agentOverrides = subagents.agentOverrides && typeof subagents.agentOverrides === "object" && !Array.isArray(subagents.agentOverrides)
             ? { ...subagents.agentOverrides }
@@ -1556,7 +1556,7 @@ export function mergeBuiltinAgentOverride(cwd, name, scope, fields) {
             : {};
         agentOverrides[name] = { ...base, ...cloneOverrideValue(fields) };
         subagents.agentOverrides = agentOverrides;
-        settings.subagents = subagents;
+        settings.piWorker = subagents;
         writeSettingsFile(filePath, settings);
         return filePath;
     });
@@ -1569,7 +1569,7 @@ export function removeBuiltinAgentOverrideFields(cwd, name, scope, fields) {
         return { path: filePath, removed: false };
     return withSettingsFileLease(filePath, () => {
         const settings = readSettingsFileStrict(filePath);
-        const subagents = settings.subagents;
+        const subagents = settings.piWorker;
         if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
             return { path: filePath, removed: false };
         const agentOverrides = subagents.agentOverrides;
@@ -1601,9 +1601,9 @@ export function removeBuiltinAgentOverrideFields(cwd, name, scope, fields) {
                 delete nextSubagents.agentOverrides;
         }
         if (Object.keys(nextSubagents).length > 0)
-            settings.subagents = nextSubagents;
+            settings.piWorker = nextSubagents;
         else
-            delete settings.subagents;
+            delete settings.piWorker;
         writeSettingsFile(filePath, settings);
         return { path: filePath, removed: true };
     });
@@ -2192,9 +2192,9 @@ const BUILTIN_AGENTS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.u
 // Candidate files and inspection state must describe the same cached builtin scan.
 const BUILTIN_AGENT_DEFINITION_INSPECTION = inspectAgentDefinitionDirectory(BUILTIN_AGENTS_DIR);
 const BUILTIN_AGENT_DEFINITION_FILES = readAgentDefinitionFiles(BUILTIN_AGENTS_DIR, BUILTIN_AGENT_DEFINITION_INSPECTION);
-export const EXTRA_AGENT_DIRS_ENV = "PI_SUBAGENT_EXTRA_AGENT_DIRS";
+export const EXTRA_AGENT_DIRS_ENV = "PI_WORKER_EXTRA_AGENT_DIRS";
 // Additional read-only directories to scan for agent definitions, supplied by the
-// launcher via PI_SUBAGENT_EXTRA_AGENT_DIRS (PATH-style, split on os/path delimiter).
+// launcher via PI_WORKER_EXTRA_AGENT_DIRS (PATH-style, split on os/path delimiter).
 // Lets a hermetic wrapper (e.g. a Nix-store install) expose bundled agents without
 // copying or symlinking them into the writable agent dir. Loaded as "user" source,
 // at lower precedence than agents the user placed in their own agent dir.
@@ -2212,7 +2212,7 @@ function readConfiguredAgentScanDirs(filePath, key = "agentScanDirs") {
         return [];
     try {
         const settings = readSettingsFileStrict(filePath);
-        const subagents = settings.subagents;
+        const subagents = settings.piWorker;
         if (!subagents || typeof subagents !== "object" || Array.isArray(subagents))
             return [];
         const dirs = subagents[key];

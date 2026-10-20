@@ -3,15 +3,15 @@
  * entry point registers nothing when it sees it, so an ambient copy of
  * pi-subagents loaded into a child session stays inert.
  */
-export const SUBAGENT_CHILD_ENV = "PI_SUBAGENT_CHILD";
+export const SUBAGENT_CHILD_ENV = "PI_WORKER_CHILD";
 /**
  * Pid of the async runner, set by the runner itself. A session's extensions
  * can compare it with process.pid to tell that the process outlives the
  * session. Descendants inherit the value but have their own pid.
  */
-export const SUBAGENT_RUNNER_PID_ENV = "PI_SUBAGENT_RUNNER_PID";
+export const SUBAGENT_RUNNER_PID_ENV = "PI_WORKER_RUNNER_PID";
 /** Root parent session id the parent publishes for pi-permission-system ask forwarding. */
-export const SUBAGENT_PARENT_SESSION_ENV = "PI_SUBAGENT_PARENT_SESSION";
+export const SUBAGENT_PARENT_SESSION_ENV = "PI_WORKER_PARENT_SESSION";
 export function childSupervisorMetadata(config) {
     if (!config.supervisorChannelDir || !config.runId || !config.agent || !config.orchestratorSessionId || config.childIndex === undefined)
         return undefined;

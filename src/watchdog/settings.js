@@ -292,7 +292,7 @@ function parseWatchdogPatch(value, field, meta) {
 function parseSettingsObject(settings, meta) {
     if (!("subagents" in settings))
         return {};
-    const subagents = parseObject(settings.subagents, "subagents", meta);
+    const subagents = parseObject(settings.piWorker, "piWorker", meta);
     if (!("watchdog" in subagents))
         return {};
     return parseWatchdogPatch(subagents.watchdog, "subagents.watchdog", meta);

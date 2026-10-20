@@ -425,11 +425,11 @@ export function createCompletionSendRegistry(ttlMs = COMPLETION_SEND_TTL_MS, cap
         },
     };
 }
-const completionSendRegistrySymbol = Symbol.for("pi-subagents.completion-send-registry.v1");
+const completionSendRegistrySymbol = Symbol.for("pi-worker.completion-send-registry.v1");
 const processGlobal = globalThis;
 const processCompletionSendRegistry = processGlobal[completionSendRegistrySymbol]
     ?? (processGlobal[completionSendRegistrySymbol] = createCompletionSendRegistry());
-const queuedWakesSymbol = Symbol.for("pi-subagents.queued-completion-wakes.v2");
+const queuedWakesSymbol = Symbol.for("pi-worker.queued-completion-wakes.v2");
 const wakeGlobal = globalThis;
 const queuedWakes = wakeGlobal[queuedWakesSymbol] ?? (wakeGlobal[queuedWakesSymbol] = new WeakMap());
 function notifyRunDetails({ resultPreview: _preview, childOutputs, ...run }) {

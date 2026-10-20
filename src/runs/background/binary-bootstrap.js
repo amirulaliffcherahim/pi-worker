@@ -21,11 +21,11 @@ import { getAgentDir } from "../../shared/utils.js";
  * Derived from xz-dev's PR #2049, commit 910807bfefcf9ee41d73fa25ec86dcd75ab8f4b2.
  */
 export default async function runBinaryBootstrap() {
-    const configPath = process.env.PI_SUBAGENT_RUNNER_CONFIG;
-    delete process.env.PI_SUBAGENT_RUNNER_CONFIG;
+    const configPath = process.env.PI_WORKER_RUNNER_CONFIG;
+    delete process.env.PI_WORKER_RUNNER_CONFIG;
     try {
         if (!configPath || !path.isAbsolute(configPath))
-            throw new Error("Missing absolute PI_SUBAGENT_RUNNER_CONFIG path");
+            throw new Error("Missing absolute PI_WORKER_RUNNER_CONFIG path");
         const rawConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
         validateSubagentRunConfig(rawConfig);
         const config = rawConfig;

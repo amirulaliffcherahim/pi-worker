@@ -133,7 +133,7 @@ function formatSpawnBudgetSection(input) {
 }
 function formatRunFanoutSection(input) {
     const configured = resolveMaxSubagentSpawnsPerRun(input.config.maxSubagentSpawnsPerRun);
-    const source = normalizeMaxSubagentSpawnsPerRun(process.env.PI_SUBAGENT_MAX_SPAWNS_PER_RUN) !== undefined
+    const source = normalizeMaxSubagentSpawnsPerRun(process.env.PI_WORKER_MAX_SPAWNS_PER_RUN) !== undefined
         ? "environment"
         : normalizeMaxSubagentSpawnsPerRun(input.config.maxSubagentSpawnsPerRun) !== undefined ? "config" : "default";
     return [`- configured limit: ${configured} (${source})`, "- usage: available after a run starts", "- reset boundary: cumulative claims are never released; a new top-level run creates a new budget"];
@@ -148,9 +148,9 @@ function formatActiveAsyncCapacitySection(input) {
 }
 function formatPermissionSystemSection() {
     const lines = [];
-    const parentSession = process.env["PI_SUBAGENT_PARENT_SESSION"] ?? "";
+    const parentSession = process.env["PI_WORKER_PARENT_SESSION"] ?? "";
     const trimmed = parentSession.trim();
-    const isChild = process.env["PI_SUBAGENT_CHILD"] === "1";
+    const isChild = process.env["PI_WORKER_CHILD"] === "1";
     if (isChild && trimmed) {
         lines.push(`- runner parent session: set (${trimmed}) — explicit target for this dedicated child process`);
     }
@@ -165,7 +165,7 @@ function formatPermissionSystemSection() {
     }
     if (!isChild)
         lines.push("- foreground external ask forwarding: unavailable until the permission extension supports a session-scoped target");
-    lines.push(`- subagent process: ${isChild ? "yes (PI_SUBAGENT_CHILD=1)" : "no"}`);
+    lines.push(`- subagent process: ${isChild ? "yes (PI_WORKER_CHILD=1)" : "no"}`);
     // Whether pi-permission-system is installed and where it stores config is
     // outside pi-subagents' control, so we only report the forwarding signal we
     // own. Run `pi list` to confirm the permission extension is installed.

@@ -1,7 +1,7 @@
 import { SUBAGENT_ASYNC_COMPLETE_EVENT, SUBAGENT_ASYNC_STARTED_EVENT, SUBAGENT_CONTROL_EVENT, } from "../shared/types.js";
 import { previewDisplayText, sanitizeDisplayText } from "../shared/display-text.js";
-export const HERDR_FOREGROUND_CONTROL_CHANGED_EVENT = "pi-subagents:herdr:foreground-control-changed";
-const DEFAULT_SOURCE = "pi-subagents:herdr";
+export const HERDR_FOREGROUND_CONTROL_CHANGED_EVENT = "pi-worker:herdr:foreground-control-changed";
+const DEFAULT_SOURCE = "pi-worker:herdr";
 const DEFAULT_TTL_MS = 120_000;
 const DEFAULT_REFRESH_MS = 45_000;
 const MAX_TASK_LABEL_CHARS = 80;

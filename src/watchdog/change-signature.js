@@ -18,13 +18,13 @@ function positiveEnvNumber(name, fallback) {
 // Read at call time (not module load) so tests can override env guards after
 // this module is imported.
 function maxHashFileBytes() {
-    return positiveEnvNumber("PI_SUBAGENTS_MAX_HASH_FILE_BYTES", DEFAULT_MAX_HASH_FILE_BYTES);
+    return positiveEnvNumber("PI_WORKER_MAX_HASH_FILE_BYTES", DEFAULT_MAX_HASH_FILE_BYTES);
 }
 function maxHashTotalBytes() {
-    return positiveEnvNumber("PI_SUBAGENTS_MAX_HASH_TOTAL_BYTES", DEFAULT_MAX_HASH_TOTAL_BYTES);
+    return positiveEnvNumber("PI_WORKER_MAX_HASH_TOTAL_BYTES", DEFAULT_MAX_HASH_TOTAL_BYTES);
 }
 function maxHashEntries() {
-    return positiveEnvNumber("PI_SUBAGENTS_MAX_HASH_ENTRIES", DEFAULT_MAX_HASH_ENTRIES);
+    return positiveEnvNumber("PI_WORKER_MAX_HASH_ENTRIES", DEFAULT_MAX_HASH_ENTRIES);
 }
 function git(cwd, args) {
     const result = spawnSync("git", ["-C", cwd, ...args], { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024, windowsHide: true });

@@ -126,7 +126,7 @@ export function buildWatchdogStatus(snapshot, ctx) {
     else {
         lines.push("", "Config: ok");
     }
-    lines.push("Sources:", ...snapshot.sources.map(sourceLine), "", "Model commands:", "- /subagents-watchdog recommend-model", "- /subagents-watchdog model recommended (saves to user settings, not project settings)", "- /subagents-watchdog model <provider/model[:thinking]>", "- /subagents-watchdog model inherit", "- /subagents-watchdog session model recommended", "Agent action: subagent({ action: \"watchdog.configure\", model: \"recommended\", options: { scope: \"session\" } })");
+    lines.push("Sources:", ...snapshot.sources.map(sourceLine), "", "Model commands:", "- /worker-watchdog recommend-model", "- /worker-watchdog model recommended (saves to user settings, not project settings)", "- /worker-watchdog model <provider/model[:thinking]>", "- /worker-watchdog model inherit", "- /worker-watchdog session model recommended", "Agent action: subagent({ action: \"watchdog.configure\", model: \"recommended\", options: { scope: \"session\" } })");
     return lines.join("\n");
 }
 function parseTestCommand(input) {
@@ -144,7 +144,7 @@ function parseThinkingCommand(raw) {
     const value = raw.trim();
     if (value === "inherit")
         return null;
-    return parseWatchdogThinkingInput(value, "/subagents-watchdog thinking") ?? null;
+    return parseWatchdogThinkingInput(value, "/worker-watchdog thinking") ?? null;
 }
 function resolveModelCommandValue(runtime, ctx, raw) {
     const value = raw.trim();
@@ -176,10 +176,10 @@ function buildRecommendationText(runtime, ctx) {
         `Reason: ${recommendation.reason}`,
         "",
         "Apply for this session:",
-        "/subagents-watchdog session model recommended",
+        "/worker-watchdog session model recommended",
         "",
         "Save as your user default (affects other projects without overrides; does not change project settings):",
-        "/subagents-watchdog model recommended",
+        "/worker-watchdog model recommended",
     ].join("\n");
 }
 function buildCheckText(runtime, ctx) {
@@ -208,7 +208,7 @@ function createTestWarning(severity, importance, text) {
         source: "main",
         state: "displayed",
         summary: text,
-        evidence: `Manual /subagents-watchdog test ${severity} message from the main session.`,
+        evidence: `Manual /worker-watchdog test ${severity} message from the main session.`,
         recommendedAction: severity === "blocker"
             ? "Verify the renderer and transcript delivery."
             : "Verify the renderer and transcript delivery; decide manually whether any action is needed.",
@@ -300,7 +300,7 @@ async function handleWatchdogCommand(pi, runtime, args, ctx) {
                 `Subagent watchdog model saved to user settings: ${value.description}. Project and session overrides still take precedence.`,
                 `Updated: ${settingsPath}`,
                 `Main now: ${boolLabel(snapshot.enabled)}`,
-                value.model === null ? "The watchdog now inherits the current session model and thinking." : "Run /subagents-watchdog on if the watchdog is still off.",
+                value.model === null ? "The watchdog now inherits the current session model and thinking." : "Run /worker-watchdog on if the watchdog is still off.",
                 "",
                 buildWatchdogStatus(snapshot, ctx),
             ].join("\n"));
@@ -335,14 +335,14 @@ async function handleWatchdogCommand(pi, runtime, args, ctx) {
     const test = parseTestCommand(input);
     if (test) {
         if (!test.text) {
-            ctx.ui.notify("Usage: /subagents-watchdog test concern|blocker low|medium|high <text>", "error");
+            ctx.ui.notify("Usage: /worker-watchdog test concern|blocker low|medium|high <text>", "error");
             return;
         }
         const warning = createTestWarning(test.severity, test.importance, test.text);
         runtime.displayRecordedWarning(warning);
         return;
     }
-    ctx.ui.notify(`Usage: /subagents-watchdog [status|on|off|session on|session off|recommend-model|model recommended|model <provider/model[:thinking]>|model inherit|thinking ${THINKING_LEVELS.join("|")}|thinking inherit|session model recommended|check|test concern|blocker low|medium|high <text>]`, "error");
+    ctx.ui.notify(`Usage: /worker-watchdog [status|on|off|session on|session off|recommend-model|model recommended|model <provider/model[:thinking]>|model inherit|thinking ${THINKING_LEVELS.join("|")}|thinking inherit|session model recommended|check|test concern|blocker low|medium|high <text>]`, "error");
 }
 export function registerMainWatchdog(pi, options = {}) {
     let currentContext;
@@ -358,7 +358,7 @@ export function registerMainWatchdog(pi, options = {}) {
         displayUserWarning: (details) => pi.appendEntry(SUBAGENT_WATCHDOG_WARNING_TYPE, details),
         displayClarification: (content) => pi.sendMessage({ customType: "subagent_watchdog_clarification", content, display: true }, { deliverAs: "steer", triggerTurn: true }),
     });
-    pi.registerCommand("subagents-watchdog", {
+    pi.registerCommand("worker-watchdog", {
         description: "Show or toggle the default-off subagent watchdog",
         handler: (args, ctx) => {
             rememberContext(ctx);

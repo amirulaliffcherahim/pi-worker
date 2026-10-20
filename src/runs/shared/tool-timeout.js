@@ -1,4 +1,4 @@
-export const TOOL_TIMEOUT_ENV = "PI_SUBAGENT_TOOL_TIMEOUT_MS";
+export const TOOL_TIMEOUT_ENV = "PI_WORKER_TOOL_TIMEOUT_MS";
 /** Maximum delay a Node.js timer accepts without overflow. */
 const MAX_TIMER_DELAY_MS = 2_147_483_647;
 export const DEFAULT_FAST_TOOL_TIMEOUT_MS = 300_000;

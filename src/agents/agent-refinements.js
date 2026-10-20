@@ -464,7 +464,7 @@ function resolveOneAgent(cwd, agentName) {
 export async function handleRefinementAction(action, params, ctx) {
     const requestedAgent = params.agent?.trim();
     if (!requestedAgent)
-        return result(`${action} requires agent. Use /subagents-refine <agent> or subagent({ action: "${action}", agent: "<agent>" }).`, true);
+        return result(`${action} requires agent. Use /worker-refine <agent> or subagent({ action: "${action}", agent: "<agent>" }).`, true);
     let resolved;
     try {
         resolved = resolveOneAgent(ctx.cwd, requestedAgent);

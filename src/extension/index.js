@@ -58,6 +58,7 @@ import { clearSlashSnapshots, getSlashRenderableSnapshot, resolveSlashMessageDet
 import { resolveWaitToolConfig } from "../runs/background/subagent-wait.js";
 import { registerWaitTool } from "../runs/background/wait-tool.js";
 import { registerSubagentToolActivation } from "./tool-activation.js";
+import { warnIfUpstreamLoaded } from "./collision-guard.js";
 import { recordedPromptSection, registerPinnedTool, setDeclarationPinning } from "./declaration-pinning.js";
 import { buildActiveRunsSection } from "./active-runs-prompt.js";
 import { createWaitSubscriptionManager } from "../runs/background/wait-subscriptions.js";
@@ -80,7 +81,6 @@ import { resolveMissionStoreLocation } from "../missions/store.js";
 import { listRetainedChildren } from "../runs/background/retained-children.js";
 import { DIRS, DEFAULT_ARTIFACT_CONFIG, SLASH_RESULT_TYPE, SLASH_TEXT_RESULT_TYPE, SUBAGENT_ASYNC_COMPLETE_EVENT, SUBAGENT_ASYNC_STARTED_EVENT, SUBAGENT_PROCESS_TERMINAL_EVENT, SUBAGENT_CONTROL_EVENT, SUBAGENT_STEERING_NOTICE_EVENT, WIDGET_KEY, resolveMaxSubagentSpawnsPerSession, } from "../shared/types.js";
 import { handleSubagentControlNotice, } from "./control-notices.js";
-import { showUpgradeNotice } from "./upgrade-notice.js";
 const SLOW_RELOAD_PHASE_MS = 250;
 // Long enough for Pi to finish starting; loading the executor blocks the event loop for tens of ms.
 const MODULE_PRELOAD_DELAY_MS = 1_000;
@@ -132,7 +132,7 @@ function getSubagentSessionRoot(parentSessionFile) {
         const sessionsDir = path.dirname(parentSessionFile);
         return path.join(sessionsDir, baseName);
     }
-    return fs.mkdtempSync(path.join(os.tmpdir(), "pi-subagent-session-"));
+    return fs.mkdtempSync(path.join(os.tmpdir(), "pi-worker-session-"));
 }
 function expandTilde(p) {
     return p.startsWith("~/") ? path.join(os.homedir(), p.slice(2)) : p;
@@ -605,7 +605,7 @@ export default function registerSubagentExtension(pi) {
     });
     const parameters = createSubagentParamsSchema(disabledFeatures);
     const tool = {
-        name: "subagent",
+        name: "delegate_task",
         ...MODEL_ONLY_TOOL,
         label: "Subagent",
         description: buildSubagentToolDescription(config, { disabledFeatures }),
@@ -616,7 +616,7 @@ export default function registerSubagentExtension(pi) {
         },
         renderCall(args, theme) {
             const gap = " ".repeat(config.mainWindowRenderer?.horizontalSpacing ?? 1);
-            const title = theme.fg("toolTitle", theme.bold("subagent"));
+            const title = theme.fg("toolTitle", theme.bold("delegate_task"));
             if (args.action) {
                 const target = args.agent || "";
                 return new Text(`${title}${gap}${args.action}${target ? `${gap}${theme.fg("accent", target)}` : ""}`, 0, 0);
@@ -648,7 +648,7 @@ export default function registerSubagentExtension(pi) {
         const activeRuns = config.activeRunsPrompt === true ? buildActiveRunsSection(state.asyncJobs.values(), sessionId) : undefined;
         if (activeRuns)
             event.systemPromptOptions.sections.active_subagents = activeRuns;
-        if (!event.systemPromptOptions.selectedTools.includes("subagent"))
+        if (!event.systemPromptOptions.selectedTools.includes("delegate_task"))
             return;
         const catalog = buildAdvertisedAgentCatalog(advertisedAgents, resolveCurrentSubagentCapabilityCeiling(sessionId), recordedPromptSection(pi, "advertised_subagents"));
         if (catalog)
@@ -663,7 +663,7 @@ export default function registerSubagentExtension(pi) {
                 parentWake.userAborted();
                 const active = activeAsyncJobCount();
                 if (active > 0)
-                    ctx.ui.notify(`${active} background subagent run${active === 1 ? " is" : "s are"} still active · /subagents-stop`, "info");
+                    ctx.ui.notify(`${active} background subagent run${active === 1 ? " is" : "s are"} still active · /worker-stop`, "info");
             }
             // A headless host may dispose the session as soon as this turn settles, so hand
             // finished results to Pi now; Pi runs the queued completion turn after agent_end.
@@ -754,7 +754,7 @@ export default function registerSubagentExtension(pi) {
         rpcBridge.dispose,
     ];
     pi.on("tool_result", (event, ctx) => {
-        if (event.toolName !== "subagent")
+        if (event.toolName !== "delegate_task")
             return;
         if (!ctx.hasUI)
             return;
@@ -1048,6 +1048,7 @@ export default function registerSubagentExtension(pi) {
         compactionResumeTimer = setTimeout(resumeWhenIdle, COMPACTION_RESUME_POLL_MS);
     });
     pi.on("session_start", (event, ctx) => {
+        warnIfUpstreamLoaded(pi, ctx);
         parentWake.bindSession(ctx);
         completionNotifier.bindSession(ctx.sessionManager);
         installRuntime(ctx);
@@ -1093,7 +1094,6 @@ export default function registerSubagentExtension(pi) {
         await herdrStatusBridge.flush();
     });
     // Child processes and Herdr panes never load this module; in-process children have no UI.
-    pi.on("session_start", (_event, ctx) => void showUpgradeNotice(ctx).catch((error) => console.error("Failed to show the pi-subagents upgrade notice:", error)));
     pi.on("session_start", (_event, ctx) => beginAdvertisement(ctx));
     registerSubagentToolActivation(pi, {
         mode: config.toolActivation,

@@ -9,7 +9,7 @@ import * as path from "node:path";
 import { intersectThinkingCeilings } from "../../shared/thinking-ceiling.js";
 import { resolveChildDepth, } from "../../shared/types.js";
 import { extensionOnlyMcpServers } from "./mcp-direct-tool-allowlist.js";
-import { encodeExtensionBindings, PI_SUBAGENT_EXTENSION_BINDINGS_ENV } from "./extension-bindings.js";
+import { encodeExtensionBindings, PI_WORKER_EXTENSION_BINDINGS_ENV } from "./extension-bindings.js";
 import { intersectSubagentCapabilityCeilings } from "./capability-ceiling.js";
 import { isSubagentRuntimeExtensionPath, projectLaunchResolvedChildExtensions, resolvePiLaunchToolPlan, supervisorChannelDir, } from "./child-tool-plan.js";
 import { createCapturedChildHooks, withChildSessionErrorReporting } from "./child-hooks.js";
@@ -48,7 +48,7 @@ function inheritedCapabilityCeiling(inherited) {
 /** Environment values external child extensions read; only the runner applies them. */
 function childProcessEnv(input, toolPlan) {
     const env = {};
-    env[PI_SUBAGENT_EXTENSION_BINDINGS_ENV] = encodeExtensionBindings(input.extensionBindings);
+    env[PI_WORKER_EXTENSION_BINDINGS_ENV] = encodeExtensionBindings(input.extensionBindings);
     // Selectors resolved against Pi's built-in MCP never reach an adapter.
     if (toolPlan.builtinMcpTools)
         env[MCP_DIRECT_TOOLS_ENV] = "__none__";

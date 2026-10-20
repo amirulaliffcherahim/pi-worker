@@ -233,7 +233,7 @@ function validateConfig(config) {
     validateRunnerLaunchersConfig(config.runnerLaunchers);
 }
 export function getConfigPath() {
-    return path.join(getAgentDir(), "extensions", "subagent", "config.json");
+    return path.join(getAgentDir(), "extensions", "pi-worker", "config.json");
 }
 function readConfigForUpdate(configPath = getConfigPath()) {
     if (!fs.existsSync(configPath))

@@ -1,5 +1,5 @@
 export declare const PI_CODING_AGENT_PACKAGE = "@earendil-works/pi-coding-agent";
-export declare const PI_SUBAGENT_PI_BINARY_ENV = "PI_SUBAGENT_PI_BINARY";
+export declare const PI_WORKER_PI_BINARY_ENV = "PI_WORKER_PI_BINARY";
 export declare function findPiPackageRootFromEntry(entryPoint: string): string | undefined;
 export declare function resolveInstalledPiPackageRoot(): string | undefined;
 export declare function resolvePiPackageRoot(entry?: string | undefined): string | undefined;

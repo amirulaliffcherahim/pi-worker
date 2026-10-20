@@ -165,7 +165,7 @@ export async function runConfiguredSubagent(rawConfig, options = {}) {
             }
         }
         const { loadExecutionModule, ...executionOptions } = options;
-        const testExecutionModule = process.env.PI_SUBAGENTS_TEST_RUNNER_EXECUTION_MODULE;
+        const testExecutionModule = process.env.PI_WORKER_TEST_RUNNER_EXECUTION_MODULE;
         const execution = await (loadExecutionModule?.() ?? (testExecutionModule ? import(__rewriteRelativeImportExtension(testExecutionModule)) : import("./subagent-runner.js")));
         executionLoaded = true;
         await execution.runConfiguredSubagentExecution(config, executionOptions);
@@ -226,7 +226,7 @@ function startConfiguredSubagent(config) {
     });
 }
 function monitorTestParent() {
-    const parentPid = Number(process.env.PI_SUBAGENTS_TEST_PARENT_PID);
+    const parentPid = Number(process.env.PI_WORKER_TEST_PARENT_PID);
     if (!Number.isSafeInteger(parentPid) || parentPid <= 0 || parentPid === process.pid) {
         return;
     }

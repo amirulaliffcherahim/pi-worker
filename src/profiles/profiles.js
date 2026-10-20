@@ -361,8 +361,8 @@ export function applySubagentProfile(name) {
     const settingsPath = getUserSettingsPath();
     withSettingsFileLease(settingsPath, () => {
         const settings = readSettingsFile(settingsPath);
-        const existing = settings.subagents && typeof settings.subagents === "object" && !Array.isArray(settings.subagents)
-            ? settings.subagents
+        const existing = settings.piWorker && typeof settings.piWorker === "object" && !Array.isArray(settings.piWorker)
+            ? settings.piWorker
             : {};
         // A profile owns the complete agent mapping, but unrelated subagent settings
         // (notably disableBuiltins, modelScope, watchdog, etc.) survive profile switches.
@@ -376,7 +376,7 @@ export function applySubagentProfile(name) {
             if (typeof machine === "string" && agentOverrides[name]?.machine === undefined)
                 agentOverrides[name] = { ...agentOverrides[name], machine };
         }
-        settings.subagents = {
+        settings.piWorker = {
             ...existing,
             ...profile.subagents,
             agentOverrides,

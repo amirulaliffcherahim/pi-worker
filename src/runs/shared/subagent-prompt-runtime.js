@@ -252,11 +252,11 @@ function isParentOnlySubagentMessage(message) {
 }
 function isSubagentToolResultMessage(message) {
     const m = message;
-    return m?.role === "toolResult" && m.toolName === "subagent";
+    return m?.role === "toolResult" && m.toolName === "delegate_task";
 }
 function isSubagentToolCallBlock(block) {
     const b = block;
-    return b?.type === "toolCall" && b.name === "subagent";
+    return b?.type === "toolCall" && b.name === "delegate_task";
 }
 const PORTABLE_TOOL_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 const MAX_PORTABLE_TOOL_ID_LENGTH = 64;
