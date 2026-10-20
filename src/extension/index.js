@@ -62,6 +62,7 @@ import { warnIfUpstreamLoaded } from "./collision-guard.js";
 import { registerLeadGate } from "../lead/lead-gate.js";
 import { registerDiffTool } from "../lead/diff-tool.js";
 import { createDelegateWrapper } from "../lead/delegate-wrapper.js";
+import { renderLeadPrompt, resolveBriefTemplate } from "../lead/lead-prompt.js";
 import { recordedPromptSection, registerPinnedTool, setDeclarationPinning } from "./declaration-pinning.js";
 import { buildActiveRunsSection } from "./active-runs-prompt.js";
 import { createWaitSubscriptionManager } from "../runs/background/wait-subscriptions.js";
@@ -656,6 +657,7 @@ export default function registerSubagentExtension(pi) {
             event.systemPromptOptions.sections.active_subagents = activeRuns;
         if (!event.systemPromptOptions.selectedTools.includes("delegate_task"))
             return;
+        event.systemPromptOptions.sections.pi_worker_lead = renderLeadPrompt(resolveBriefTemplate(pi.getSettings()));
         const catalog = buildAdvertisedAgentCatalog(advertisedAgents, resolveCurrentSubagentCapabilityCeiling(sessionId), recordedPromptSection(pi, "advertised_subagents"));
         if (catalog)
             event.systemPromptOptions.sections.advertised_subagents = catalog;
