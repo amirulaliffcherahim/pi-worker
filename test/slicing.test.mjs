@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkParallelism, checkSlices, checkWriterOverlap, launchableAgents, maxConcurrentUnits, parallelGroups, pathsInBrief, writerMap } from "../src/lead/agent-gate.js";
+import { checkParallelism, checkSlices, checkWriterOverlap, launchableAgents, maxConcurrentUnits, parallelGroups, writerMap } from "../src/lead/agent-gate.js";
 import { gateLaunch, DEFAULT_ALLOWED_TOOLS } from "../src/lead/delegate-gate.js";
 import { DEFAULT_CATEGORIES, renderLeadPrompt, renderRoster, renderSlicingRules, resolveBriefTemplate, resolveSlicing } from "../src/lead/lead-prompt.js";
 import { estimateTokens } from "../src/lead/delegate-gate.js";
@@ -9,7 +9,7 @@ const SONNET = "claude/claude-sonnet-5-5";
 const settings = { enabledModels: [SONNET] };
 const agents = [
 	{ name: "worker", description: "Implementation agent", tools: ["read", "edit", "bash"] },
-	{ name: "scout", description: "Fast recon", tools: ["read", "grep", "bash", "write"] },
+	{ name: "scout", description: "Fast recon", tools: ["read", "grep", "bash"] },
 	{ name: "reviewer", description: "Review specialist", tools: ["read", "grep", "bash"] },
 	{ name: "fan", description: "Delegates", tools: ["read", "delegate_task"] },
 	{ name: "ext", description: "External", tools: ["read"], runner: { type: "external-cli" } },
@@ -17,7 +17,7 @@ const agents = [
 ];
 const resolveAgent = (name, list) => ({ agent: list.find((a) => a.name === name) });
 const env = { agents, resolveAgent, sessionThinking: "low" };
-const unit = (agent, task) => ({ agent, task });
+const unit = (agent, task, writes) => ({ agent, task, ...(writes ? { writes } : {}) });
 const launch = (extra) => ({ model: SONNET, ...extra });
 
 test("roster lists only agents the gate would launch, sorted, with a writes/read-only tag", () => {
@@ -58,7 +58,11 @@ test("slicing rules only offer categories whose worker is launchable", () => {
 	assert.match(text, /Review -> reviewer/);
 	assert.doesNotMatch(text, /Decide -> oracle/);
 	assert.match(text, /at most 4/);
-	assert.match(text, /Only one Build slice may touch a file/);
+	assert.match(text, /must carry writes/);
+	assert.match(text, /ONE delegate_task call as tasks/);
+	assert.match(text, /Review at most 2 rounds/);
+	assert.match(text, /more than 5 files, or anything touching migrations, auth, deletion, config, CI or a public API/);
+	assert.match(text, /Small jobs is for docs, config and renames/);
 });
 
 test("lead prompt carries the roster, the slicing rules and stays small", () => {
@@ -78,8 +82,8 @@ test("maxConcurrentUnits is the widest parallel group, not the chain length", ()
 });
 
 test("more parallel workers than piWorker.maxParallel is refused, at the limit passes", () => {
-	assert.equal(checkParallelism({ tasks: [1, 2, 3, 4].map(() => unit("worker", "t")) }, 4), undefined);
-	assert.match(checkParallelism({ tasks: [1, 2, 3, 4, 5].map(() => unit("worker", "t")) }, 4), /5 workers would run at once.*limit of 4/);
+	assert.equal(checkParallelism({ tasks: [1, 2, 3, 4].map((n) => unit("worker", "t", ["f" + n + ".js"])) }, 4), undefined);
+	assert.match(checkParallelism({ tasks: [1, 2, 3, 4, 5].map((n) => unit("worker", "t", ["f" + n + ".js"])) }, 4), /5 workers would run at once.*limit of 4/);
 });
 
 test("gateLaunch enforces maxParallel from settings", () => {
@@ -91,40 +95,3 @@ test("gateLaunch enforces maxParallel from settings", () => {
 	assert.match(gateLaunch(launch({ tasks: [unit("reviewer", "a"), unit("reviewer", "b")] }), tight, 0, env).error, /over the limit of 1/);
 });
 
-test("pathsInBrief finds file names with directories, drive letters and backslashes", () => {
-	const found = pathsInBrief("Edit src/app.js lines 1-9 and C:\\proj\\lib\\util.ts, plus ./README.md. Not a path: e.g. and 3.5");
-	assert.ok(found.has("src/app.js"));
-	assert.ok(found.has("c:/proj/lib/util.ts"));
-	assert.ok(found.has("readme.md"));
-});
-
-test("two parallel writers naming the same file are refused", () => {
-	const params = launch({ tasks: [unit("worker", "Fix the bug in src/app.js"), unit("worker", "Add tests that import src/app.js")] });
-	const error = gateLaunch(params, settings, 0, env).error;
-	assert.match(error, /tasks\[0\] and tasks\[1\] both write 'src\/app\.js'/);
-});
-
-test("path case and separators do not hide an overlap", () => {
-	const group = parallelGroups({ tasks: [unit("worker", "edit SRC\\App.js"), unit("worker", "edit ./src/app.js")] })[0];
-	assert.match(checkWriterOverlap(group, writerMap(agents)), /both write 'src\/app\.js'/);
-});
-
-test("disjoint writers, and a writer next to a reader on the same file, are allowed", () => {
-	const disjoint = launch({ tasks: [unit("worker", "Fix src/a.js"), unit("worker", "Fix src/b.js")] });
-	assert.equal(gateLaunch(disjoint, settings, 0, env).error, undefined);
-	const mixed = launch({ tasks: [unit("worker", "Fix src/a.js"), unit("reviewer", "Review src/a.js")] });
-	assert.equal(gateLaunch(mixed, settings, 0, env).error, undefined);
-});
-
-test("the overlap check covers chain parallel groups but not sequential chain steps", () => {
-	const inGroup = launch({ chain: [{ parallel: [unit("worker", "edit src/a.js"), unit("worker", "edit src/a.js")] }] });
-	assert.match(gateLaunch(inGroup, settings, 0, env).error, /chain\[0\]\.parallel\[0\] and chain\[0\]\.parallel\[1\]/);
-	const sequential = launch({ chain: [unit("worker", "edit src/a.js"), unit("worker", "edit src/a.js")] });
-	assert.equal(gateLaunch(sequential, settings, 0, env).error, undefined);
-});
-
-test("checkSlices passes a single launch and unknown agents are treated as read-only", () => {
-	assert.equal(checkSlices({ agent: "worker", task: "edit src/a.js" }, { maxParallel: 4, agents }), undefined);
-	const group = parallelGroups({ tasks: [unit("ghost", "edit src/a.js"), unit("ghost", "edit src/a.js")] })[0];
-	assert.equal(checkWriterOverlap(group, writerMap(agents)), undefined);
-});

@@ -43,18 +43,18 @@ test("categoryForAgent finds the first category for an agent", () => {
 
 test("the lead can omit model: the category model and effort apply", () => {
 	const settings = { ...base, piWorker: { categories: [{ agent: "worker", model: SONNET, effort: "low" }] } };
-	const gated = gateLaunch({ agent: "worker", task: "t" }, settings, 0, env);
+	const gated = gateLaunch({ agent: "worker", task: "t", writes: ["a.js"] }, settings, 0, env);
 	assert.equal(gated.error, undefined);
 	assert.equal(gated.params.model, SONNET + ":low");
 });
 
 test("model precedence: unit, then launch, then category, then piWorker.defaultModel", () => {
 	const settings = { ...base, piWorker: { defaultModel: OPUS, categories: [{ agent: "worker", model: HAIKU }, { agent: "scout" }] } };
-	const unitModel = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", model: OPUS }] }, settings, 0, env);
+	const unitModel = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", writes: ["a.js"], model: OPUS }] }, settings, 0, env);
 	assert.ok(unitModel.params.tasks[0].model.startsWith(OPUS));
-	const launchModel = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t" }] }, settings, 0, env);
+	const launchModel = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", writes: ["a.js"] }] }, settings, 0, env);
 	assert.ok(launchModel.params.tasks[0].model.startsWith(SONNET));
-	const categoryModel = gateLaunch({ tasks: [{ agent: "worker", task: "t" }] }, settings, 0, env);
+	const categoryModel = gateLaunch({ tasks: [{ agent: "worker", task: "t", writes: ["a.js"] }] }, settings, 0, env);
 	assert.ok(categoryModel.params.tasks[0].model.startsWith(HAIKU));
 	const fallback = gateLaunch({ tasks: [{ agent: "scout", task: "t" }] }, settings, 0, env);
 	assert.ok(fallback.params.tasks[0].model.startsWith(OPUS));
@@ -62,7 +62,7 @@ test("model precedence: unit, then launch, then category, then piWorker.defaultM
 
 test("each unit gets its own model and effort in one launch", () => {
 	const settings = { ...base, piWorker: { categories: [{ agent: "scout", model: HAIKU, effort: "low" }, { agent: "oracle", model: OPUS, effort: "high" }, { agent: "worker", model: SONNET }] } };
-	const gated = gateLaunch({ chain: [{ agent: "scout", task: "a" }, { agent: "oracle", task: "b" }, { parallel: [{ agent: "worker", task: "c1 src/a.js" }, { agent: "worker", task: "c2 src/b.js" }] }] }, settings, 0, env);
+	const gated = gateLaunch({ chain: [{ agent: "scout", task: "a" }, { agent: "oracle", task: "b" }, { parallel: [{ agent: "worker", task: "c1", writes: ["src/a.js"] }, { agent: "worker", task: "c2", writes: ["src/b.js"] }] }] }, settings, 0, env);
 	assert.equal(gated.error, undefined);
 	assert.equal(gated.params.chain[0].model, HAIKU + ":low");
 	assert.equal(gated.params.chain[1].model, OPUS + ":high");

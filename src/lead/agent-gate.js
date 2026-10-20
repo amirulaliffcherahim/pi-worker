@@ -1,5 +1,6 @@
 import { compareThinkingLevels } from "../shared/thinking-ceiling.js";
 import { THINKING_LEVELS } from "../shared/model-info.js";
+import { cleanWrites, firstOverlap, isUnbounded } from "./write-scope.js";
 
 // Checks run against the agent a launch will really use, not only against what the lead typed.
 // An agent file can be written by a worker (workers have write), so the lead's own role gate is not enough.
@@ -111,35 +112,37 @@ export function checkParallelism(params, maxParallel) {
 	return undefined;
 }
 
-const PATH_PATTERN = /(?:[A-Za-z]:)?[\w./\\-]*[\w-]\.[A-Za-z0-9]{1,8}\b/g;
-
-function normalizePath(raw) {
-	return raw.replace(/\\/g, "/").replace(/^\.\//, "").toLowerCase();
-}
-
-/** File paths a brief names. Rough on purpose: it only has to catch two writers pointed at the same file. */
-export function pathsInBrief(text) {
-	const found = new Set();
-	for (const match of text.matchAll(PATH_PATTERN))
-		found.add(normalizePath(match[0]));
-	return found;
-}
-
 /**
- * Two writers in one parallel group must not name the same file. A writer is an agent whose tools include edit or write.
+ * Two writers in one parallel group must not declare overlapping `writes`. A writer is an agent whose tools include edit or write.
  * `writers` maps agent name to a boolean; unknown agents count as read-only because the runner will reject them anyway.
  */
 export function checkWriterOverlap(group, writers) {
-	const seen = new Map();
+	const declared = [];
 	for (const { label, unit } of group) {
-		if (!writers.get(unit.agent) || typeof unit.task !== "string")
+		if (!writers.get(unit.agent))
 			continue;
-		for (const file of pathsInBrief(unit.task)) {
-			const owner = seen.get(file);
-			if (owner && owner !== label)
-				return `pi-worker: ${owner} and ${label} both write '${file}' in parallel. Chain them, or give each slice its own files.`;
-			seen.set(file, label);
+		const writes = cleanWrites(unit.writes);
+		for (const earlier of declared) {
+			const hit = firstOverlap(earlier.writes, writes);
+			if (hit)
+				return `pi-worker: ${earlier.label} and ${label} both write '${hit.left}' / '${hit.right}' in parallel. Chain them, or give each slice its own files.`;
 		}
+		declared.push({ label, writes });
+	}
+	return undefined;
+}
+
+/** Every writer must say what it may change, and not "everything". Checked for single launches, chains and parallel groups alike. */
+export function checkWritesDeclared(params, writers) {
+	for (const { label, unit } of collectUnits(params)) {
+		if (!writers.get(unit.agent))
+			continue;
+		const writes = cleanWrites(unit.writes);
+		if (writes.length === 0)
+			return `pi-worker: '${label}' (${unit.agent}) edits files but declares no writes. List the files or globs it may change, for example writes:["src/a.js","tests/a.test.js"].`;
+		const loose = writes.find(isUnbounded);
+		if (loose !== undefined)
+			return `pi-worker: '${label}' declares writes '${loose}', which allows every file. Name the files or a directory glob such as src/auth/**.`;
 	}
 	return undefined;
 }
@@ -167,6 +170,9 @@ export function checkSlices(params, { maxParallel, agents }) {
 	if (parallelError)
 		return parallelError;
 	const writers = writerMap(agents ?? []);
+	const undeclared = checkWritesDeclared(params, writers);
+	if (undeclared)
+		return undeclared;
 	for (const group of parallelGroups(params)) {
 		const overlap = checkWriterOverlap(group, writers);
 		if (overlap)

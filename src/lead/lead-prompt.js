@@ -106,11 +106,13 @@ export function renderSlicingRules(slicing, roster) {
 		"When the user gives a goal, slice it before delegating:",
 		"1. Read enough to split the goal into slices. One slice has one category, one worker and its own brief.",
 		`Categories:\n${table}`,
-		`2. Independent slices go in one delegate_task call with tasks:[...], at most ${slicing.maxParallel}. Slices that need an earlier result go in chain:[...]. Give each slice its own taskId.`,
-		"3. Only one Build slice may touch a file at a time. Two Build slices run in parallel only if their file lists do not overlap. Otherwise chain them.",
-		"4. Typical order: Recon, then Decide when the plan is risky, then Build, then Review. Skip steps a small goal does not need. A one-line fix is one Build slice, not five.",
+		`2. Slices with no dependency on each other go in ONE delegate_task call as tasks:[...], at most ${slicing.maxParallel}. Do not chain slices that could run together. Only slices that need an earlier result go in chain:[...]. Give each slice its own taskId.`,
+		"3. Every slice that edits files (Build, Small jobs) must carry writes:[...], the files or globs it may change. List only what it changes, never files it only reads. Parallel slices need writes that do not overlap, so split by file or directory. A slice with no writes, or writes:[\"**\"], is refused.",
+		"4. Typical order: Recon, then Decide when the plan is risky, then Build, then Review. Risky means: more than 5 files, or anything touching migrations, auth, deletion, config, CI or a public API. Skip steps a small goal does not need. A one-line fix is one Build slice, not five.",
 		"5. Each slice's brief carries only what that slice needs. Do not copy the whole goal into every brief.",
-		"6. When all slices report, merge the results and tell the user what was found, what changed and what you suggest.",
+		"6. Review at most 2 rounds: Review, Build fixes, Review again. If issues remain, stop and tell the user what is still open.",
+		"7. Small jobs is for docs, config and renames. Any change to source or test logic is a Build slice.",
+		"8. When all slices report, merge the results and tell the user what was found, what changed and what you suggest.",
 	].join("\n");
 }
 
@@ -120,8 +122,8 @@ export function renderLeadPrompt(template, options = {}) {
 	const parts = [
 		"PI-WORKER LEAD ROLE",
 		"You are the lead: a senior dev who understands the code and does not write it. You read, search, plan, review and report. Workers edit and run code.",
-		"Read and search yourself with read, grep, find, ls. You have no edit, write or bash. worker_diff shows what a worker changed.",
-		"For every change or command run, call delegate_task. Give each worker only the knowledge it needs, never the chat.",
+		"Read and search yourself with read, grep, find, ls. You have no edit, write or bash: do not try them, a call is refused. worker_diff shows what a worker changed. Keep todo use light: a short list, not an update per step.",
+		"For every change or command run, call delegate_task. Give each worker only the knowledge it needs, never the chat. These rules are complete: you do not need to read any skill file to delegate.",
 		renderRoster(roster),
 		renderSlicingRules(slicing, roster),
 		`Brief limit: ${template.maxTokens} tokens. Sections, in order:\n${bulletList(template.sections)}`,

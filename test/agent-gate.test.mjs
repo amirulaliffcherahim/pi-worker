@@ -19,7 +19,7 @@ const agents = [
 ];
 const resolveAgent = (name, list) => ({ agent: list.find((a) => a.name === name) });
 const env = (sessionThinking) => ({ agents, resolveAgent, sessionThinking });
-const launch = (agent, extra = {}) => ({ agent, task: "t", model: SONNET, ...extra });
+const launch = (agent, extra = {}) => ({ agent, task: "t", model: SONNET, writes: ["src/a.js"], ...extra });
 
 test("collectUnits walks single, tasks, chain and chain parallel", () => {
 	const labels = collectUnits({
@@ -38,18 +38,18 @@ test("a per-child thinking is refused; a per-child model is allowed", () => {
 });
 
 test("a per-child model is checked against enabledModels and its suffix is clamped", () => {
-	const bad = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", model: "openai/gpt-9" }] }, settings, 0, env("low"));
+	const bad = gateLaunch({ model: SONNET, tasks: [{ agent: "worker", task: "t", writes: ["a.js"], model: "openai/gpt-9" }] }, settings, 0, env("low"));
 	assert.match(bad.error, /not in enabledModels/);
-	const clamped = gateLaunch({ model: SONNET, chain: [{ agent: "worker", task: "t", model: SONNET + ":high" }] }, settings, 0, env("low"));
+	const clamped = gateLaunch({ model: SONNET, chain: [{ agent: "worker", task: "t", writes: ["a.js"], model: SONNET + ":high" }] }, settings, 0, env("low"));
 	assert.equal(clamped.params.chain[0].model, SONNET + ":medium");
 	assert.match(clamped.notices.join(" "), /thinking .high. clamped/);
 });
 
 test("a per-child thinking is refused by gateLaunch for every shape", () => {
 	for (const params of [
-		{ model: SONNET, tasks: [{ agent: "worker", task: "t", thinking: "high" }] },
-		{ model: SONNET, chain: [{ agent: "worker", task: "t", thinking: "high" }] },
-		{ model: SONNET, chain: [{ parallel: [{ agent: "worker", task: "t", thinking: "high" }] }] },
+		{ model: SONNET, tasks: [{ agent: "worker", task: "t", writes: ["a.js"], thinking: "high" }] },
+		{ model: SONNET, chain: [{ agent: "worker", task: "t", writes: ["a.js"], thinking: "high" }] },
+		{ model: SONNET, chain: [{ parallel: [{ agent: "worker", task: "t", writes: ["a.js"], thinking: "high" }] }] },
 	]) {
 		assert.match(gateLaunch(params, settings, 0, env("low")).error, /sets its own thinking/);
 	}
@@ -69,7 +69,7 @@ test("a worker-written agent file with delegate_task is refused at launch even t
 });
 
 test("every unit is checked, including ones inside chain parallel groups", () => {
-	const gated = gateLaunch({ model: SONNET, chain: [{ agent: "worker", task: "t" }, { parallel: [{ agent: "fan", task: "t" }] }] }, settings, 0, env("low"));
+	const gated = gateLaunch({ model: SONNET, chain: [{ agent: "worker", task: "t", writes: ["a.js"] }, { parallel: [{ agent: "fan", task: "t" }] }] }, settings, 0, env("low"));
 	assert.match(gated.error, /chain\[1\]\.parallel\[0\]: agent 'fan'/);
 });
 

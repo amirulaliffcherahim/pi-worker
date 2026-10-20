@@ -120,3 +120,11 @@ test("management actions pass through untouched", async () => {
 	await guarded({ action: "status", id: "abc" }, async (launch) => { seen = launch; return { content: [] }; });
 	assert.deepEqual(seen, { action: "status", id: "abc" });
 });
+
+test("lead prompt tells the lead not to try bash and not to read skill files", () => {
+	const prompt = renderLeadPrompt(resolveBriefTemplate({}));
+	assert.match(prompt, /do not try them, a call is refused/);
+	assert.match(prompt, /do not need to read any skill file/);
+	assert.match(prompt, /Keep todo use light/);
+	assert.match(prompt, /leave model out and each worker gets its category default/);
+});
