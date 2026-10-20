@@ -63,7 +63,9 @@ import { forceWorkerFeatureLimits } from "../lead/feature-limits.js";
 import { registerLeadGate } from "../lead/lead-gate.js";
 import { registerDiffTool } from "../lead/diff-tool.js";
 import { createDelegateWrapper } from "../lead/delegate-wrapper.js";
-import { renderLeadPrompt, resolveBriefTemplate } from "../lead/lead-prompt.js";
+import { renderLeadPrompt, resolveBriefTemplate, resolveSlicing } from "../lead/lead-prompt.js";
+import { launchableAgents } from "../lead/agent-gate.js";
+import { resolveDelegateSettings } from "../lead/delegate-gate.js";
 import { recordedPromptSection, registerPinnedTool, setDeclarationPinning } from "./declaration-pinning.js";
 import { buildActiveRunsSection } from "./active-runs-prompt.js";
 import { createWaitSubscriptionManager } from "../runs/background/wait-subscriptions.js";
@@ -664,7 +666,9 @@ export default function registerSubagentExtension(pi) {
             event.systemPromptOptions.sections.active_subagents = activeRuns;
         if (!event.systemPromptOptions.selectedTools.includes("delegate_task"))
             return;
-        event.systemPromptOptions.sections.pi_worker_lead = renderLeadPrompt(resolveBriefTemplate(pi.getSettings()));
+        const leadSettings = pi.getSettings();
+        const roster = launchableAgents(delegateEnv().agents, resolveDelegateSettings(leadSettings).allowedTools);
+        event.systemPromptOptions.sections.pi_worker_lead = renderLeadPrompt(resolveBriefTemplate(leadSettings), { roster, slicing: resolveSlicing(leadSettings) });
         const catalog = buildAdvertisedAgentCatalog(advertisedAgents, resolveCurrentSubagentCapabilityCeiling(sessionId), recordedPromptSection(pi, "advertised_subagents"));
         if (catalog)
             event.systemPromptOptions.sections.advertised_subagents = catalog;

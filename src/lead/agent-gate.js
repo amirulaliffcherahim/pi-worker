@@ -89,3 +89,92 @@ export function pinNeeded({ suffixLevel, configs, sessionDefault, allowed }) {
 	const effective = configs.length > 0 ? configs.map((agent) => agentThinking(agent) ?? sessionLevel) : [sessionLevel];
 	return effective.some(exceeds) ? allowed : undefined;
 }
+
+/** Agents the launch gate would accept, in name order. This is the list the lead is shown. */
+export function launchableAgents(agents, allowedTools) {
+	return agents
+		.filter((agent) => agent.disabled !== true && checkAgentConfig(agent, allowedTools) === undefined)
+		.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+/** Widest set of children that run at the same time: the larger of tasks[] and any chain parallel group. */
+export function maxConcurrentUnits(params) {
+	let widest = Array.isArray(params.tasks) ? params.tasks.length : 0;
+	if (Array.isArray(params.chain)) {
+		for (const step of params.chain)
+			if (Array.isArray(step?.parallel))
+				widest = Math.max(widest, step.parallel.length);
+	}
+	return widest;
+}
+
+export function checkParallelism(params, maxParallel) {
+	const widest = maxConcurrentUnits(params);
+	if (widest > maxParallel)
+		return `pi-worker: ${widest} workers would run at once, over the limit of ${maxParallel} (piWorker.maxParallel). Split into waves with chain:[...].`;
+	return undefined;
+}
+
+const PATH_PATTERN = /(?:[A-Za-z]:)?[\w./\\-]*[\w-]\.[A-Za-z0-9]{1,8}\b/g;
+
+function normalizePath(raw) {
+	return raw.replace(/\\/g, "/").replace(/^\.\//, "").toLowerCase();
+}
+
+/** File paths a brief names. Rough on purpose: it only has to catch two writers pointed at the same file. */
+export function pathsInBrief(text) {
+	const found = new Set();
+	for (const match of text.matchAll(PATH_PATTERN))
+		found.add(normalizePath(match[0]));
+	return found;
+}
+
+/**
+ * Two writers in one parallel group must not name the same file. A writer is an agent whose tools include edit or write.
+ * `writers` maps agent name to a boolean; unknown agents count as read-only because the runner will reject them anyway.
+ */
+export function checkWriterOverlap(group, writers) {
+	const seen = new Map();
+	for (const { label, unit } of group) {
+		if (!writers.get(unit.agent) || typeof unit.task !== "string")
+			continue;
+		for (const file of pathsInBrief(unit.task)) {
+			const owner = seen.get(file);
+			if (owner && owner !== label)
+				return `pi-worker: ${owner} and ${label} both write '${file}' in parallel. Chain them, or give each slice its own files.`;
+			seen.set(file, label);
+		}
+	}
+	return undefined;
+}
+
+/** Every group of children that would run together: the top-level tasks[] and each chain parallel group. */
+export function parallelGroups(params) {
+	const groups = [];
+	if (Array.isArray(params.tasks))
+		groups.push(params.tasks.map((unit, index) => ({ label: `tasks[${index}]`, unit })));
+	if (Array.isArray(params.chain)) {
+		params.chain.forEach((step, index) => {
+			if (Array.isArray(step?.parallel))
+				groups.push(step.parallel.map((unit, inner) => ({ label: `chain[${index}].parallel[${inner}]`, unit })));
+		});
+	}
+	return groups;
+}
+
+export function writerMap(agents) {
+	return new Map(agents.map((agent) => [agent.name, (agent.tools ?? []).some((tool) => tool === "edit" || tool === "write")]));
+}
+
+export function checkSlices(params, { maxParallel, agents }) {
+	const parallelError = checkParallelism(params, maxParallel);
+	if (parallelError)
+		return parallelError;
+	const writers = writerMap(agents ?? []);
+	for (const group of parallelGroups(params)) {
+		const overlap = checkWriterOverlap(group, writers);
+		if (overlap)
+			return overlap;
+	}
+	return undefined;
+}

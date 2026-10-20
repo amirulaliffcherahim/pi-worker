@@ -1,6 +1,6 @@
 import { compareThinkingLevels } from "../shared/thinking-ceiling.js";
 import { THINKING_LEVELS } from "../shared/model-info.js";
-import { checkUnitOverrides, pinNeeded, resolveUnitAgents } from "./agent-gate.js";
+import { checkSlices, checkUnitOverrides, pinNeeded, resolveUnitAgents } from "./agent-gate.js";
 
 // Hard rules for every delegate_task launch. Code decides, the lead's judgement only picks inside the limits.
 // Order of checks: role, workflow ban, brief size, model required and allowlisted, thinking clamp.
@@ -12,9 +12,11 @@ export const DEFAULT_BRIEF_MAX_TOKENS = 3000;
 export const DEFAULT_THINKING_CEILING = "medium";
 export const ESCALATED_THINKING = "high";
 export const ESCALATE_AFTER_FAILURES = 2;
+export const DEFAULT_MAX_PARALLEL = 4;
 // xhigh and max are never reachable through delegation. Only the user applies them by hand, outside pi-worker.
 export const HARD_MAX_THINKING = "high";
-export const DEFAULT_ALLOWED_TOOLS = Object.freeze(["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor"]);
+// Web tools are read-only and let researcher and evidence-auditor work. Workers still cannot delegate.
+export const DEFAULT_ALLOWED_TOOLS = Object.freeze(["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "web_search", "fetch_content", "get_search_content", "source_check"]);
 const ROLE_ACTIONS = new Set(["create", "update"]);
 
 export function estimateTokens(text) {
@@ -31,7 +33,9 @@ export function resolveDelegateSettings(settings) {
 	const ceiling = compareThinkingLevels(requested, HARD_MAX_THINKING) > 0 ? HARD_MAX_THINKING : requested;
 	const enabledModels = Array.isArray(settings?.enabledModels) ? settings.enabledModels.filter((id) => typeof id === "string") : [];
 	const allowedTools = Array.isArray(root?.allowedTools) ? root.allowedTools.map(String) : DEFAULT_ALLOWED_TOOLS;
-	return { maxTokens, ceiling, enabledModels, allowedTools };
+	const parallel = root?.maxParallel;
+	const maxParallel = Number.isInteger(parallel) && parallel > 0 ? parallel : DEFAULT_MAX_PARALLEL;
+	return { maxTokens, ceiling, enabledModels, allowedTools, maxParallel };
 }
 
 /** Every free-text brief in a launch: single task, parallel tasks, chain steps (including parallel groups). */
@@ -191,6 +195,9 @@ export function gateLaunch(params, settings, failures, env = {}) {
 		if (resolved.error)
 			return { error: resolved.error };
 		configs = resolved.configs;
+		const sliceError = checkSlices(params, { maxParallel: rules.maxParallel, agents: env.agents });
+		if (sliceError)
+			return { error: sliceError };
 	}
 	const allowed = allowedThinking(rules.ceiling, failures);
 	const { level: nextLevel, clamped } = clampThinking(level, allowed);

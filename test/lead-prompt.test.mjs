@@ -67,8 +67,8 @@ test("lead prompt states the role and stays small", () => {
 	assert.match(prompt, /does not write it/);
 	assert.match(prompt, /delegate_task/);
 	assert.match(prompt, /worker_diff/);
-	assert.match(prompt, /after 2 failures the cap lifts to high/);
-	assert.ok(estimateTokens(prompt) < 700, `lead prompt is ${estimateTokens(prompt)} tokens`);
+	assert.match(prompt, /after 2 real failures the cap lifts to high/);
+	assert.ok(estimateTokens(prompt) < 1100, `lead prompt is ${estimateTokens(prompt)} tokens`);
 });
 
 test("worker rules are appended to every task shape, brief text first", () => {

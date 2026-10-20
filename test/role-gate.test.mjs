@@ -34,7 +34,7 @@ test("forced feature limits add workflow-scripts and keep the operator's own lis
 });
 
 test("role tools outside the allowlist are refused, delegate_task never allowed by default", () => {
-	for (const tools of [["read", "delegate_task"], "read, subagent_supervisor", ["web_search"]]) {
+	for (const tools of [["read", "delegate_task"], "read, subagent_supervisor", ["memory_write"]]) {
 		const error = checkRole({ action: "create", config: { name: "x", description: "d", tools } }, settings);
 		assert.match(error, /role tools not allowed/, JSON.stringify(tools));
 	}
@@ -57,7 +57,7 @@ test("role thinking above the ceiling and unknown models are refused", () => {
 });
 
 test("role config can arrive as a JSON string", () => {
-	assert.match(checkRole({ action: "create", config: JSON.stringify({ tools: ["web_search"] }) }, settings), /role tools not allowed/);
+	assert.match(checkRole({ action: "create", config: JSON.stringify({ tools: ["memory_write"] }) }, settings), /role tools not allowed/);
 	assert.equal(checkRole({ action: "create", config: "not json" }, settings), undefined);
 });
 
