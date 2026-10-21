@@ -38,6 +38,18 @@ Run parallel reviewers: one for correctness, one for tests, and one for unnecess
 
 That is enough to start. Pi decides whether to call the `subagent` tool, which agent to use, and how to compose the work.
 
+## Lead mode
+
+Delegation is opt-in. A session starts as a normal single agent: the delegation tools are not in the tool set, and nothing extra is added to the prompt.
+
+```text
+/lead refactor the parser and add the missing tests
+```
+
+`/lead` turns lead mode on for the rest of the session and strips the token, so the rest of the line is the brief. A bare `/lead` only flips the switch. `/lead off` removes the delegation tools again.
+
+While lead mode is on, the lead does not edit or run code: `tool_call` refuses `edit`, `write`, `bash`, `powershell`, `apply_patch`, `multi_edit` and `notebook_edit` and points at `delegate_task`. `piWorker.lead.readOnly` (default `true`), `piWorker.lead.strict`, `piWorker.lead.blockedTools` and `piWorker.lead.allowedTools` control that veto.
+
 ## How it works
 
 Pi is the parent session. A subagent is a focused child Pi session with its own job.

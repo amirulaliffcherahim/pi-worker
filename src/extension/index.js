@@ -62,6 +62,7 @@ import { warnIfUpstreamLoaded } from "./collision-guard.js";
 import { forceWorkerFeatureLimits } from "../lead/feature-limits.js";
 import { isLeadMode } from "../lead/lead-mode.js";
 import { registerLeadGate } from "../lead/lead-gate.js";
+import { registerLeadCommand } from "../lead/lead-command.js";
 import { registerDiffTool } from "../lead/diff-tool.js";
 import { createDelegateWrapper } from "../lead/delegate-wrapper.js";
 import { renderLeadPrompt, resolveBriefTemplate, resolveSlicing } from "../lead/lead-prompt.js";
@@ -1127,5 +1128,7 @@ export default function registerSubagentExtension(pi) {
             return buildAdvertisedAgentPrompt(advertisedAgents, resolveCurrentSubagentCapabilityCeiling(state.currentSessionId ?? undefined));
         },
     });
+    // Registered last: its before_agent_start must run after the loader's, so /lead owns the final tool set.
+    registerLeadCommand(pi);
 }
 //# sourceMappingURL=index.js.map
