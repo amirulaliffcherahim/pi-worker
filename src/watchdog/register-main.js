@@ -358,13 +358,6 @@ export function registerMainWatchdog(pi, options = {}) {
         displayUserWarning: (details) => pi.appendEntry(SUBAGENT_WATCHDOG_WARNING_TYPE, details),
         displayClarification: (content) => pi.sendMessage({ customType: "subagent_watchdog_clarification", content, display: true }, { deliverAs: "steer", triggerTurn: true }),
     });
-    pi.registerCommand("worker-watchdog", {
-        description: "Show or toggle the default-off subagent watchdog",
-        handler: (args, ctx) => {
-            rememberContext(ctx);
-            return handleWatchdogCommand(pi, runtime, args, ctx);
-        },
-    });
     pi.on("session_start", (_event, ctx) => {
         rememberContext(ctx);
         diffBaseline = startWatchdogDiffBaselineCapture(ctx.cwd);

@@ -718,11 +718,9 @@ export default function registerSubagentExtension(pi) {
             }
         }
     });
-    const disposeSlashCommands = registerSlashCommands(pi, state, {
-        fleetKeybindings: config.fleetKeybindings,
-        foregroundDetachShortcut: config.foregroundDetachShortcut,
-        workflowScriptsDisabled: disabledFeatures.features.has("workflow-scripts"),
-    });
+    // Lead-only install: the `subagent` tool and the lead gate below stay, but the wide slash
+    // command surface (/worker, /worker-run, /worker-fleet, ...) is not registered here.
+    const disposeSlashCommands = { dispose: () => { } };
     let visibleControlNotices = new Set();
     const activeHerdrRuns = () => projectActiveHerdrRuns(state);
     const herdrStatusBridge = registerHerdrStatusBridge({
