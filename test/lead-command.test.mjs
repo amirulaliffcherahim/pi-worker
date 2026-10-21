@@ -98,3 +98,18 @@ test("a session without delegation tools still records the switch and warns", as
 	assert.equal(process.env.PI_LEAD_MODE, "1");
 	assert.ok(notices.some((n) => /no delegation tools/.test(n)));
 });
+
+test("the delegation tools are refused while the switch is off, allowed after /lead", async () => {
+	const { run, input } = load();
+	const call = (toolName) => run("tool_call", { toolName, input: {} }, {});
+	for (const name of DELEGATION_TOOLS) {
+		const blocked = call(name);
+		assert.equal(blocked?.block, true, name);
+		assert.match(blocked.reason, /\/lead/);
+	}
+	assert.equal(call("read"), undefined);
+	await input("/lead on");
+	for (const name of DELEGATION_TOOLS) assert.equal(call(name), undefined, name);
+	await input("/lead off");
+	assert.equal(call("delegate_task")?.block, true);
+});

@@ -89,4 +89,15 @@ export function registerLeadCommand(pi) {
     pi.on("before_agent_start", () => {
         applyToolSet(enabled);
     });
+
+    // Backstop: another extension may put the delegation tools back (tool-activation.js does, for the
+    // loader). They stay refused while the switch is off, so the tool set is not the only guard.
+    pi.on("tool_call", (event) => {
+        if (enabled || !DELEGATION_TOOLS.includes(event.toolName))
+            return undefined;
+        return {
+            block: true,
+            reason: `pi-worker: ${event.toolName} is off. Prefix the prompt with /lead to enable delegation for this session, or do the work directly.`,
+        };
+    });
 }
