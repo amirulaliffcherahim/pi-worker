@@ -60,6 +60,7 @@ import { registerWaitTool } from "../runs/background/wait-tool.js";
 import { registerSubagentToolActivation } from "./tool-activation.js";
 import { warnIfUpstreamLoaded } from "./collision-guard.js";
 import { forceWorkerFeatureLimits } from "../lead/feature-limits.js";
+import { isLeadMode } from "../lead/lead-mode.js";
 import { registerLeadGate } from "../lead/lead-gate.js";
 import { registerDiffTool } from "../lead/diff-tool.js";
 import { createDelegateWrapper } from "../lead/delegate-wrapper.js";
@@ -664,6 +665,9 @@ export default function registerSubagentExtension(pi) {
         const activeRuns = config.activeRunsPrompt === true ? buildActiveRunsSection(state.asyncJobs.values(), sessionId) : undefined;
         if (activeRuns)
             event.systemPromptOptions.sections.active_subagents = activeRuns;
+        // Lead mode is opt-in (/lead). Without it this fork adds no prompt text and costs nothing.
+        if (!isLeadMode())
+            return;
         if (!event.systemPromptOptions.selectedTools.includes("delegate_task"))
             return;
         const leadSettings = pi.getSettings();

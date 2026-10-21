@@ -37,6 +37,7 @@ test("malformed settings fall back to the safe default", () => {
 });
 
 test("tool_call handler vetoes through pi.getSettings, re-read on each call", () => {
+	process.env.PI_LEAD_MODE = "1";
 	let settings = {};
 	let handler;
 	registerLeadGate({ on: (name, fn) => { if (name === "tool_call") handler = fn; }, getSettings: () => settings });
@@ -77,6 +78,7 @@ test("a readOnlyHint cannot unblock a denylisted tool", () => {
 });
 
 test("handler reads tool annotations from pi.getAllTools and survives it throwing", () => {
+	process.env.PI_LEAD_MODE = "1";
 	let handler;
 	const settings = { piWorker: { lead: { strict: true } } };
 	const base = { on: (name, fn) => { if (name === "tool_call") handler = fn; }, getSettings: () => settings };
@@ -85,4 +87,18 @@ test("handler reads tool annotations from pi.getAllTools and survives it throwin
 	assert.equal(handler({ toolName: "other" }).block, true);
 	registerLeadGate({ ...base, getAllTools: () => { throw new Error("not ready"); } });
 	assert.equal(handler({ toolName: "other" }).block, true);
+});
+
+test("with lead mode off the gate changes nothing: a normal session can edit", () => {
+	delete process.env.PI_LEAD_MODE;
+	let handler;
+	registerLeadGate({ on: (name, fn) => { if (name === "tool_call") handler = fn; }, getSettings: () => ({}), getAllTools: () => [] });
+	for (const tool of ["edit", "write", "bash", "read"]) {
+		assert.equal(handler({ toolName: tool }), undefined, tool);
+	}
+	process.env.PI_LEAD_MODE = "1";
+	assert.equal(handler({ toolName: "edit" }).block, true);
+	process.env.PI_LEAD_MODE = "0";
+	assert.equal(handler({ toolName: "edit" }), undefined);
+	delete process.env.PI_LEAD_MODE;
 });

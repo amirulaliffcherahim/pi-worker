@@ -1,3 +1,4 @@
+import { isLeadMode } from "./lead-mode.js";
 // The lead never changes code. Enforced at the tool_call boundary, not in the prompt:
 // a prompt rule can be talked around, a veto cannot. Workers run in children where this extension
 // returns early, so these blocks only ever apply to the lead session.
@@ -58,6 +59,9 @@ function annotationsFor(pi, toolName) {
 
 export function registerLeadGate(pi) {
 	pi.on("tool_call", (event) => {
+		// Only when the user asked for lead mode; otherwise the session is a normal single agent.
+		if (!isLeadMode())
+			return undefined;
 		const gate = resolveLeadGate(pi.getSettings());
 		const verdict = leadToolVerdict(gate, event.toolName, annotationsFor(pi, event.toolName));
 		return verdict.block ? verdict : undefined;
